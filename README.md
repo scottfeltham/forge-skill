@@ -1,20 +1,24 @@
 # FORGE Skill for Claude Code
 
-A standalone Claude Code skill that implements the FORGE development framework - structured, phase-based development with no MCP server required.
+A standalone Claude Code skill that implements the FORGE development framework - Intent-Driven Development (IDD) for AI-assisted software engineering.
 
 ## What is FORGE?
 
-FORGE (Focus-Orchestrate-Refine-Generate-Evaluate) is an AI-first development methodology that structures work into 5 sequential phases:
+FORGE (Focus-Orchestrate-Refine-Generate-Evaluate) is an Intent-Driven Development methodology that structures work into 5 sequential phases:
 
-| Phase | Purpose |
-|-------|---------|
-| 🎯 **Focus** | Requirements, test scenarios, architecture |
-| 📝 **Orchestrate** | Task breakdown, dependencies, test strategy |
-| 🔨 **Refine** | TDD implementation (RED-GREEN-REFACTOR) |
-| 🚀 **Generate** | Build artifacts, deployment, documentation |
-| 📊 **Evaluate** | Metrics, retrospective, learnings |
+| Phase | Purpose | Key Question |
+|-------|---------|--------------|
+| **Focus** | Clarity | What are you actually building? |
+| **Orchestrate** | Planning | How do you break this into pieces? |
+| **Refine** | Precision | What specifically does "done" look like? |
+| **Generate** | Creation | AI writes code following TDD |
+| **Evaluate** | Verification | Does output match intent? |
 
-**Core Principle**: Test scenarios must be defined before any code is written.
+**Core Principles**:
+- Clarity before code
+- Tests before implementation (TDD)
+- One task per AI session
+- AI is a tool, not the owner
 
 ## Installation
 
@@ -24,78 +28,118 @@ FORGE (Focus-Orchestrate-Refine-Generate-Evaluate) is an AI-first development me
 - [Astral UV](https://docs.astral.sh/uv/) (for running single-file scripts)
 - Claude Code CLI
 
-### Setup
+### Global Setup (All Projects)
 
-1. Clone or copy this skill to your Claude Code skills directory:
+```bash
+# Create skills directory and symlink
+mkdir -p ~/.claude/skills
+ln -s /path/to/forge-skill/.claude/skills/forge ~/.claude/skills/forge
+```
+
+### Per-Project Setup
 
 ```bash
 # Copy to your project
 cp -r forge-skill/.claude/skills/forge /path/to/your/project/.claude/skills/
-
-# Or symlink for shared use
-ln -s /path/to/forge-skill/.claude/skills/forge ~/.claude/skills/forge
 ```
 
-2. Initialize FORGE in your project:
+## Quick Start
 
 ```bash
-cd /path/to/your/project
-uv run .claude/skills/forge/tools/forge_init.py
+# Initialize FORGE in your project
+uv run ~/.claude/skills/forge/tools/forge_init.py
+
+# Start a new cycle
+uv run ~/.claude/skills/forge/tools/forge_cycle.py new "feature-name"
+
+# Check status
+uv run ~/.claude/skills/forge/tools/forge_status.py
+
+# Validate before advancing
+uv run ~/.claude/skills/forge/tools/forge_status.py --validate
+
+# Advance to next phase
+uv run ~/.claude/skills/forge/tools/forge_phase.py advance
 ```
 
-This creates:
-- `.forge/` directory with config and templates
-- Updates `CLAUDE.md` with FORGE integration
+## The Five Phases
 
-## Usage
+### 1. Focus - Clarity
 
-### Start a New Cycle
+Define what you're building and why.
 
-```bash
-uv run .claude/skills/forge/tools/forge_cycle.py new "feature-name" --priority medium
-```
+**Required Outputs**:
+- Problem statement and target users
+- Testable success criteria
+- System Context diagram (C4 L1)
+- Clear scope boundaries
 
-### Check Status
+**Completion Test**: Can you explain what you're building to someone unfamiliar in under two minutes?
 
-```bash
-uv run .claude/skills/forge/tools/forge_status.py
-```
+### 2. Orchestrate - Planning
 
-### Validate Before Advancing
+Break the work into session-sized pieces.
 
-```bash
-uv run .claude/skills/forge/tools/forge_status.py --validate
-```
+**Required Outputs**:
+- Container architecture (C4 L2)
+- Component architecture (C4 L3)
+- Dependency map
+- Tasks sized for single AI sessions
 
-### Advance to Next Phase
+**Completion Test**: Do you have a complete list of tasks in order, each small enough for one AI session?
 
-```bash
-uv run .claude/skills/forge/tools/forge_phase.py advance
-```
+### 3. Refine - Precision
 
-### Mark Tasks Complete
+Define exactly what "done" looks like. **No code in this phase.**
 
-```bash
-uv run .claude/skills/forge/tools/forge_phase.py complete-task "task description"
-```
+**Required Outputs**:
+- Acceptance criteria in Given-When-Then format
+- Interface specifications
+- Edge cases by category
+- Constraints vs criteria documented
 
-### Capture Learnings
+**Completion Test**: Does every task have acceptance criteria specific enough to test?
 
-```bash
-uv run .claude/skills/forge/tools/forge_learn.py add pattern "title" "description"
-```
+### 4. Generate - Creation
 
-### Run Retrospective
+AI writes code following strict TDD.
 
-```bash
-uv run .claude/skills/forge/tools/forge_learn.py retro
-```
+**Process**: RED → GREEN → REFACTOR
+- Write failing test first
+- Minimal code to pass
+- Improve while tests stay green
 
-### Complete Cycle
+**Rules**:
+- One task per session
+- 80% minimum coverage
+- No skipped tests
 
-```bash
-uv run .claude/skills/forge/tools/forge_cycle.py complete <cycle-id>
-```
+### 5. Evaluate - Verification
+
+Verify output matches intent.
+
+**Process**:
+- Line-by-line criteria check
+- Edge case testing
+- Security review
+- Disposition decision: Accept / Revise / Reject
+
+## CLI Tools
+
+| Tool | Purpose |
+|------|---------|
+| `forge_init.py` | Initialize .forge/ in a project |
+| `forge_cycle.py new` | Start a new development cycle |
+| `forge_cycle.py list` | List all cycles |
+| `forge_cycle.py complete` | Complete and archive a cycle |
+| `forge_status.py` | Check current status |
+| `forge_status.py --validate` | Validate phase requirements |
+| `forge_phase.py advance` | Move to next phase |
+| `forge_phase.py complete-task` | Mark a task complete |
+| `forge_phase.py add-task` | Add a new task |
+| `forge_learn.py add` | Capture a learning |
+| `forge_learn.py list` | List all learnings |
+| `forge_learn.py retro` | Run retrospective |
 
 ## Directory Structure
 
@@ -103,84 +147,67 @@ uv run .claude/skills/forge/tools/forge_cycle.py complete <cycle-id>
 .claude/skills/forge/
 ├── skill.md                    # Main skill definition
 ├── tools/                      # Python CLI tools
-│   ├── forge_init.py          # Initialize .forge/
-│   ├── forge_cycle.py         # Manage cycles
-│   ├── forge_phase.py         # Manage phases
-│   ├── forge_status.py        # Get status
-│   └── forge_learn.py         # Manage learnings
+│   ├── forge_init.py
+│   ├── forge_cycle.py
+│   ├── forge_phase.py
+│   ├── forge_status.py
+│   └── forge_learn.py
 ├── prompts/                    # Prompt templates
-│   ├── prd-conversation.md    # PRD building prompts
-│   └── retrospective.md       # Retrospective prompts
-└── cookbook/                   # Progressive disclosure docs
-    ├── phases/                # Phase guides
-    │   ├── focus.md
-    │   ├── orchestrate.md
-    │   ├── refine.md
-    │   ├── generate.md
-    │   └── evaluate.md
-    ├── agents/                # Agent prompts
-    │   ├── architect.md
-    │   ├── developer.md
-    │   ├── tester.md
-    │   ├── devops.md
-    │   ├── security.md
-    │   ├── documentation.md
-    │   └── reviewer.md
-    └── workflows/             # Step-by-step guides
-        ├── new-cycle.md
-        ├── phase-advance.md
-        └── complete-cycle.md
+│   ├── prd-conversation.md
+│   └── retrospective.md
+└── cookbook/                   # Phase guides
+    └── phases/
+        ├── focus.md
+        ├── orchestrate.md
+        ├── refine.md
+        ├── generate.md
+        └── evaluate.md
+```
+
+## State Management
+
+All FORGE state lives in `.forge/` directory:
+
+```
+.forge/
+├── config.yaml           # Project configuration
+├── context.md            # AI assistant context
+├── learnings.md          # Knowledge base
+└── cycles/
+    ├── active/           # Current cycles
+    └── completed/        # Archived cycles
 ```
 
 ## Phase Gates
 
-Each phase has validation requirements that must be met before advancing:
+Each phase has validation requirements:
 
-### Focus → Orchestrate
-- ✅ Test scenarios defined (MANDATORY)
-- ✅ Architecture designed
-- ✅ Security risks identified
+**Focus → Orchestrate**
+- Problem statement and users defined
+- Success criteria are testable
+- C4 L1 diagram exists
+- Scope boundaries set
 
-### Orchestrate → Refine
-- ✅ Minimum 3 tasks defined
-- ✅ Dependencies mapped
-- ✅ Test strategy documented
+**Orchestrate → Refine**
+- Architecture designed (C4 L2/L3)
+- Dependencies mapped
+- Tasks sized for sessions
 
-### Refine → Generate
-- ✅ Tests written and passing
-- ✅ Code review completed
-- ✅ Implementation tasks done
+**Refine → Generate**
+- Given-When-Then criteria for all tasks
+- Interfaces specified
+- Edge cases enumerated
+- NO CODE WRITTEN YET
 
-### Generate → Evaluate
-- ✅ Build artifacts created
-- ✅ Documentation updated
+**Generate → Evaluate**
+- TDD followed (RED-GREEN-REFACTOR)
+- Tests passing
+- Coverage threshold met
 
-### Evaluate → Complete
-- ✅ Success metrics collected
-- ✅ Retrospective conducted (recommended)
-
-## How It Works
-
-1. **Skill Activation**: Claude detects FORGE-related requests ("forge", "new cycle", "advance phase", etc.)
-
-2. **Auto-Context**: Skill checks `.forge/` status before any action
-
-3. **Progressive Disclosure**: Routes to relevant cookbook docs based on current phase and request
-
-4. **Phase Enforcement**: Blocks inappropriate work (e.g., coding in Focus phase)
-
-5. **Validation Gates**: Requires completion of mandatory tasks before phase advancement
-
-## Differences from FORGE MCP
-
-This skill **replaces** the FORGE MCP server:
-
-| Feature | MCP Version | Skill Version |
-|---------|-------------|---------------|
-| Server required | Yes | No |
-| State management | MCP server | Python CLI tools |
-| Integration | MCP protocol | Direct file access |
-| Portability | Needs MCP setup | Works anywhere |
+**Evaluate → Complete**
+- Criteria verified
+- Edge cases tested
+- Disposition decided
 
 ## License
 

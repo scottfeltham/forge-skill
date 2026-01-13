@@ -1,144 +1,87 @@
-# Refine Phase ✏️
+# Refine Phase Guide
 
-**Purpose**: Precision - Define exactly what "done" looks like BEFORE coding
-**Lead Agents**: Tester, Architect, Reviewer
+**Purpose**: Precision - What specifically does "done" look like?
 
-## Core Question
+## Key Question
 
-> "How will we know this is correct before we write any code?"
+Does every task have acceptance criteria specific enough to test, with documented constraints and explicitly listed edge cases?
 
-## ⚠️ CRITICAL: NO CODE IN THIS PHASE
+## CRITICAL RULE
 
-This phase is about **specifications only**. The Generate phase is where code gets written.
+**No code is written in this phase.** Specifications only.
 
-## Goals
+## Required Outputs
 
-1. Write acceptance criteria in Given-When-Then format
-2. Specify interfaces: inputs, outputs, error contracts
-3. Enumerate edge cases by category
-4. Define constraints (how to build) vs criteria (what to build)
+1. **Acceptance Criteria** - Given-When-Then format
+2. **Interface Specifications** - Inputs, outputs, error contracts
+3. **Edge Cases** - Enumerated by category
+4. **Constraints vs Criteria** - How to build vs what to build
 
-## Acceptance Criteria Format
-
-All criteria MUST follow Given-When-Then format:
+## Given-When-Then Format
 
 ```gherkin
-Feature: User Authentication
-
-Scenario: Valid user login
-  Given a registered user with valid credentials
-  When they submit their email and password
-  Then they should receive a valid JWT token
-  And be redirected to the dashboard
-
-Scenario: Invalid password
-  Given a registered user
-  When they submit an incorrect password
-  Then they should receive a 401 error
-  And the error message should not reveal if the email exists
+Given [starting situation/preconditions]
+When [action is taken]
+Then [expected outcome]
 ```
 
-## Tasks Checklist
-
-- [ ] **Acceptance criteria** - Given-When-Then for each feature
-- [ ] **Interface specifications** - Inputs, outputs, error contracts
-- [ ] **Edge case enumeration** - By category (see below)
-- [ ] **Constraints defined** - Technical constraints and requirements
-- [ ] **Review specifications** - Validate completeness
+Example:
+```gherkin
+Given a user is logged in
+When they click the logout button
+Then their session is invalidated
+And they are redirected to the login page
+```
 
 ## Edge Case Categories
 
-Systematically enumerate edge cases for each category:
+For each task, enumerate edge cases in these categories:
 
 | Category | Examples |
 |----------|----------|
-| **Empty/null inputs** | No data, empty strings, undefined |
-| **Boundary values** | Min/max, first/last, zero/one |
-| **Invalid data** | Wrong types, malformed, out of range |
-| **Timing issues** | Out of order, concurrent, stale data |
-| **Failure scenarios** | Network down, service unavailable |
-| **Concurrent access** | Multiple users, race conditions |
-| **Security cases** | Injection, bypass, unauthorized |
+| Empty/null | Empty string, null input, missing fields |
+| Boundary | Min/max values, exactly at limits |
+| Invalid | Wrong type, malformed data, out of range |
+| Timing | Concurrent requests, timeouts, race conditions |
+| Failure | Network errors, service unavailable |
+| Concurrent | Simultaneous access, locking issues |
 
-## Interface Specification Template
+## Constraints vs Criteria
 
-```markdown
-## Interface: [Component/Function Name]
+**Criteria** (what to build):
+- Functional requirements
+- Acceptance tests
+- Success conditions
 
-### Inputs
-- `param1: Type` - Description, constraints
-- `param2: Type` - Description, constraints
+**Constraints** (how to build):
+- Technology choices
+- Performance requirements
+- Security requirements
+- Accessibility requirements
 
-### Outputs
-- **Success**: `ResponseType` - Description
-- **Error**: `ErrorType` - Description
+## Interface Specification
 
-### Error Contracts
-- `ValidationError` - When input fails validation
-- `NotFoundError` - When resource doesn't exist
-- `AuthError` - When unauthorized
+For each component interface, document:
+- **Inputs**: Parameters, types, validation rules
+- **Outputs**: Return types, response formats
+- **Errors**: Error conditions, error messages, error codes
 
-### Constraints
-- Must respond within 200ms
-- Must be idempotent
-- Must log all access attempts
-```
+## Completion Checklist
 
-## Agent Contributions
-
-### Tester Agent (Primary)
-Focus on:
-- Acceptance criteria in Given-When-Then format
-- Edge case enumeration by category
-- Test scenario completeness
-- **NO test implementation** - specifications only
-
-### Architect Agent
-Focus on:
-- Interface specifications
-- Input/output contracts
-- Error handling requirements
-- Technical constraints
-
-### Reviewer Agent
-Focus on:
-- Specification completeness
-- Criteria clarity
-- Missing edge cases
-- Ambiguity detection
-
-## Validation Gate
-
-Before advancing to Generate, verify:
-
-```bash
-uv run .claude/skills/forge/tools/forge_status.py --validate
-```
-
-**Must have:**
-- [ ] Acceptance criteria for each task (Given-When-Then)
-- [ ] Interface specifications complete
+- [ ] Every task has Given-When-Then criteria
+- [ ] Interface specifications documented
 - [ ] Edge cases enumerated by category
-- [ ] All specifications reviewed
-
-## Commands
-
-```bash
-# Mark specification tasks complete
-uv run .claude/skills/forge/tools/forge_phase.py complete-task "acceptance criteria"
-uv run .claude/skills/forge/tools/forge_phase.py complete-task "interface specs"
-uv run .claude/skills/forge/tools/forge_phase.py complete-task "edge cases"
-
-# Validate and advance
-uv run .claude/skills/forge/tools/forge_status.py --validate
-uv run .claude/skills/forge/tools/forge_phase.py advance
-```
+- [ ] Constraints documented
+- [ ] Out-of-scope explicitly listed per task
+- [ ] NO CODE WRITTEN
 
 ## Common Mistakes
 
-1. **Writing code** - This phase is specifications ONLY
-2. **Vague criteria** - "Works correctly" is not testable
-3. **Missing edge cases** - Use categories to be systematic
-4. **Incomplete interfaces** - Every input, output, and error must be specified
-5. **Skipping Given-When-Then** - All criteria must use this format
-6. **Confusing constraints and criteria** - Constraints = HOW, Criteria = WHAT
+- Writing code before criteria are complete
+- Vague acceptance criteria ("works correctly")
+- Missing edge cases that cause bugs later
+- Confusing constraints with criteria
+
+## Next Phase
+
+When Refine is complete, advance to **Generate** where AI writes code following TDD.

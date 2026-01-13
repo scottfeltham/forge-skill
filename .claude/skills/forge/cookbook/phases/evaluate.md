@@ -1,173 +1,101 @@
-# Evaluate Phase ✅
+# Evaluate Phase Guide
 
-**Purpose**: Verification - Does the output actually match intent?
-**Lead Agents**: Tester, Reviewer, All Agents
+**Purpose**: Verification - Does output match intent?
 
-## Core Question
+## Key Question
 
-> "Does this actually do what we specified in Refine?"
+Does the implementation satisfy all acceptance criteria from Refine, handle edge cases correctly, and meet security requirements?
 
-## Goals
+## Verification Process
 
-1. Line-by-line verification against acceptance criteria
-2. Test edge cases (listed AND unlisted)
-3. Security review
-4. Make disposition decision
+1. **Criteria Check**: Line-by-line against Refine specs
+2. **Edge Case Testing**: Both specified AND discovered
+3. **Integration Testing**: Components work together
+4. **Security Review**: OWASP top 10, auth, data exposure
 
-## Disposition Framework
-
-After verification, make one of these decisions:
-
-| Disposition | When to Use |
-|-------------|-------------|
-| **Accept as-is** | Meets all criteria, no issues |
-| **Accept with issues** | Meets criteria but has minor non-blocking issues |
-| **Revise** | Partially meets criteria, specific fixes needed |
-| **Reject** | Fundamentally wrong, regenerate from scratch |
-
-## Tasks Checklist
-
-- [ ] **Criteria verification** - Line-by-line check against Refine specs
-- [ ] **Edge case testing** - Test listed AND unlisted cases
-- [ ] **Security review** - Check for vulnerabilities
-- [ ] **Make disposition** - Accept/Accept with issues/Revise/Reject
-- [ ] **Conduct retrospective** - What worked? What didn't?
-- [ ] **Document learnings** - Capture insights
-
-## Criteria Verification Process
+## Criteria Verification
 
 For each acceptance criterion from Refine:
-
-```markdown
-## Criterion: [Given-When-Then from Refine]
-
-### Verification
-- [ ] Actually tested (not just read the code)
-- [ ] Passes as specified
-- [ ] Edge cases checked
-
-### Result
-- ✅ Pass / ❌ Fail / ⚠️ Partial
-
-### Notes
-[Any observations, issues, or concerns]
-```
+- [ ] Test exists that verifies the criterion
+- [ ] Test passes consistently
+- [ ] Behavior matches specification exactly
 
 ## Edge Case Testing
 
-Test both:
-1. **Listed edge cases** - All cases enumerated in Refine
-2. **Unlisted edge cases** - Think of cases you DIDN'T list
+Test the edge cases enumerated in Refine:
+- Empty/null inputs
+- Boundary values
+- Invalid inputs
+- Timing issues
+- Failure scenarios
+- Concurrent access
 
-### Edge Case Categories Checklist
-- [ ] Empty/null inputs
-- [ ] Boundary values (min, max, first, last)
-- [ ] Invalid data types and formats
-- [ ] Timing and concurrency
-- [ ] Failure scenarios
-- [ ] Security cases (injection, bypass)
+Also test edge cases discovered during Generate.
 
 ## Security Review Checklist
 
-- [ ] No injection vulnerabilities (SQL, XSS, command)
-- [ ] Authentication cannot be bypassed
-- [ ] Authorization enforced properly
-- [ ] Sensitive data not exposed in logs/errors
-- [ ] No hardcoded secrets or credentials
-- [ ] Rate limiting where appropriate
+- [ ] Input validation (server-side)
+- [ ] Parameterized queries (no SQL injection)
+- [ ] Authentication on protected endpoints
+- [ ] Authorization checks for resources
+- [ ] Sensitive data encrypted
+- [ ] No secrets in code or logs
 
-## Agent Contributions
+## Integration Testing
 
-### Tester Agent (Primary)
-Focus on:
-- Line-by-line criteria verification
-- Actually run tests, don't just read code
-- Test unlisted edge cases
-- Report disposition recommendation
+- [ ] Components communicate correctly
+- [ ] Data flows as designed
+- [ ] Error handling works across boundaries
+- [ ] Performance meets requirements
 
-### Reviewer Agent
-Focus on:
-- Code quality assessment
-- Security review
-- Performance concerns
-- Best practices compliance
+## Disposition Decisions
 
-### All Agents
-Contribute to:
-- Retrospective insights
-- Learnings documentation
-- Process improvements
+| Decision | Meaning | Action |
+|----------|---------|--------|
+| **Accept** | Meets all criteria | Ship/integrate |
+| **Accept with issues** | Works but has minor issues | Document, plan fixes |
+| **Revise** | Doesn't meet criteria | Back to Generate |
+| **Reject** | Fundamental problems | Back to Orchestrate/Focus |
 
-## Retrospective Questions
+## When to Revise vs Reject
 
-**What went well?**
-- Which practices were effective?
-- What should we keep doing?
+**Revise** (back to Generate):
+- Implementation bug
+- Missing edge case handling
+- Performance issue fixable in code
 
-**What could improve?**
-- Where did we struggle?
-- What took longer than expected?
+**Reject** (back to earlier phase):
+- Requirements were wrong
+- Architecture doesn't support the feature
+- Scope needs to change
 
-**Action items**
-- What specific changes for next cycle?
-- What learnings should be documented?
+## Completion Checklist
 
-## Capturing Learnings
+- [ ] All criteria verified
+- [ ] Edge cases tested
+- [ ] Integration tested
+- [ ] Security reviewed
+- [ ] Disposition decided
 
-Add insights to the knowledge base:
+## After Evaluate
 
+If **Accept**: Complete the cycle
 ```bash
-# Successful pattern
-uv run .claude/skills/forge/tools/forge_learn.py add success "TDD improved quality" "Writing tests first caught 3 bugs"
-
-# Something to avoid
-uv run .claude/skills/forge/tools/forge_learn.py add failure "Skipped specs" "Rushing past Refine led to rework"
-
-# Reusable pattern
-uv run .claude/skills/forge/tools/forge_learn.py add pattern "Repository pattern" "Clean separation improved testability"
+uv run forge_cycle.py complete <cycle-id>
 ```
 
-## Validation Gate
+If **Revise**: Return to Generate with specific feedback
 
-Before completing cycle, verify:
+If **Reject**: Return to appropriate earlier phase
 
+Consider running a retrospective:
 ```bash
-uv run .claude/skills/forge/tools/forge_status.py --validate
-```
-
-**Must have:**
-- [ ] All criteria verified (not just scanned)
-- [ ] Disposition decision made
-- [ ] At least one learning captured
-
-**Strongly recommended:**
-- [ ] Retrospective conducted
-- [ ] Edge cases beyond the list tested
-
-## Commands
-
-```bash
-# Run verification
-uv run .claude/skills/forge/tools/forge_phase.py complete-task "criteria verification"
-
-# Make disposition
-uv run .claude/skills/forge/tools/forge_phase.py complete-task "disposition"
-
-# Run retrospective
-uv run .claude/skills/forge/tools/forge_learn.py retro
-
-# Add learnings
-uv run .claude/skills/forge/tools/forge_learn.py add <category> "title" "description"
-
-# Complete cycle
-uv run .claude/skills/forge/tools/forge_cycle.py complete <cycle-id>
+uv run forge_learn.py retro
 ```
 
 ## Common Mistakes
 
-1. **Scanning instead of testing** - Actually run the tests, don't just read code
-2. **Only testing listed cases** - Think of cases you didn't list
-3. **Skipping security review** - Always check for vulnerabilities
-4. **No disposition decision** - Be explicit about accept/revise/reject
-5. **Skipping retrospective** - Miss valuable improvement opportunities
-6. **Vague learnings** - Be specific with examples and context
+- "Looks right" instead of systematic verification
+- Skipping edge cases that seem unlikely
+- Missing security review
+- Not documenting issues found

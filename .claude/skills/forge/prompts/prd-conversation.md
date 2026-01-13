@@ -1,141 +1,96 @@
-# PRD Conversation Prompts
+# PRD Conversation Guide
 
-Use these prompts to guide users through requirements gathering.
+Use these questions to build a Product Requirements Document during the Focus phase.
 
-## Initial Feature Discussion
+## Intent Questions
 
-When user starts a new cycle with minimal information, ask:
+1. **What problem are you solving?**
+   - Who experiences this problem?
+   - How painful is it? (frequency, severity)
+   - What happens if we don't solve it?
 
-### Understanding the Problem
+2. **Who is the target user?**
+   - Be specific (not "everyone")
+   - What do they care about?
+   - What's their technical level?
 
-```
-Before we design the solution, let's understand the problem:
+3. **What does success look like?**
+   - How will we know it worked?
+   - What metrics matter?
+   - What's the minimum viable outcome?
 
-1. **Who** is this for? (user type, role, persona)
-2. **What** problem does it solve for them?
-3. **Why** is this important now?
-4. **How** do they currently handle this? (if at all)
-```
+## Scope Questions
 
-### Defining Success
+4. **What's in scope for this cycle?**
+   - Core features only
+   - What's the smallest useful increment?
 
-```
-Let's define what success looks like:
+5. **What's explicitly out of scope?**
+   - Future enhancements
+   - Nice-to-haves
+   - Edge cases to defer
 
-1. **Test Scenarios**: How will we verify this works?
-   - Happy path: What's the main success scenario?
-   - Edge cases: What unusual situations should we handle?
-   - Error cases: What should happen when things go wrong?
+6. **What constraints apply?**
+   - Technical constraints (languages, frameworks)
+   - Time constraints
+   - Integration requirements
 
-2. **Acceptance Criteria**: What must be true for this to be "done"?
-   - [ ] Criterion 1
-   - [ ] Criterion 2
-   - [ ] Criterion 3
-```
+## Technical Questions
 
-### Technical Context
+7. **What systems does this interact with?**
+   - Existing code to integrate with
+   - External services
+   - Data sources
 
-```
-Let's understand the technical context:
+8. **What are the key risks?**
+   - Technical unknowns
+   - Performance concerns
+   - Security considerations
 
-1. **Integrations**: What systems does this touch?
-2. **Data**: What data is needed? Created? Modified?
-3. **Performance**: Any speed/scale requirements?
-4. **Security**: Any sensitive data or access concerns?
-```
+## Acceptance Questions
 
-### Scope Definition
+9. **How will we test this?**
+   - Key scenarios to verify
+   - Edge cases that matter
+   - Performance thresholds
 
-```
-Let's be clear about scope:
+10. **What would make us reject the implementation?**
+    - Deal-breakers
+    - Quality gates
+    - Non-negotiables
 
-**In Scope** (what we WILL do):
--
-
-**Out of Scope** (what we WON'T do this cycle):
--
-
-**Dependencies** (what we need from others):
--
-```
-
-## Test Scenario Template
-
-```gherkin
-Feature: [Feature Name]
-
-  Background:
-    Given [common setup for all scenarios]
-
-  Scenario: [Happy Path - Main Success]
-    Given [initial context]
-    When [user action]
-    Then [expected outcome]
-    And [additional verification]
-
-  Scenario: [Edge Case 1]
-    Given [edge case context]
-    When [user action]
-    Then [expected handling]
-
-  Scenario: [Error Case - Invalid Input]
-    Given [error context]
-    When [user provides invalid input]
-    Then [error is handled gracefully]
-    And [user sees helpful message]
-```
-
-## PRD Summary Template
-
-After gathering information, summarize:
+## PRD Template
 
 ```markdown
-# PRD: [Feature Name]
+# [Feature Name]
 
-## Problem
-[1-2 sentence problem statement]
+## Problem Statement
+[What problem exists and for whom]
 
-## Solution
-[1-2 sentence solution summary]
+## Target Users
+[Specific user description]
 
-## User Stories
-- As a [user], I want to [action] so that [benefit]
+## Success Criteria
+- [ ] [Measurable criterion 1]
+- [ ] [Measurable criterion 2]
+- [ ] [Measurable criterion 3]
 
-## Test Scenarios
-[Link to or include test scenarios]
-
-## Acceptance Criteria
-- [ ] [Criterion 1]
-- [ ] [Criterion 2]
-
-## Technical Notes
-- [Key technical decisions]
-- [Integration points]
-- [Constraints]
+## In Scope
+- [Feature 1]
+- [Feature 2]
 
 ## Out of Scope
-- [What we're explicitly NOT doing]
+- [Deferred item 1]
+- [Deferred item 2]
 
-## Success Metrics
-- [How we'll measure success]
-```
+## Constraints
+- [Technical constraint]
+- [Other constraint]
 
-## Conversation Flow
+## Key Risks
+- [Risk 1]
+- [Risk 2]
 
-```
-1. START: "What feature are you building?"
-   ↓
-2. PROBLEM: "What problem does this solve?"
-   ↓
-3. USERS: "Who will use this?"
-   ↓
-4. SUCCESS: "How will we know it works?" (TEST SCENARIOS)
-   ↓
-5. TECHNICAL: "Any technical constraints?"
-   ↓
-6. SCOPE: "What's in/out of scope?"
-   ↓
-7. SUMMARIZE: Create PRD summary
-   ↓
-8. CONFIRM: "Does this capture your requirements?"
+## System Context
+[C4 L1 diagram or description]
 ```

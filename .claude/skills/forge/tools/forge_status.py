@@ -1,324 +1,250 @@
+#!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.11"
 # dependencies = ["pyyaml"]
 # ///
-"""
-FORGE Status Tool - Get cycle status and run checkpoints
-
-Usage:
-    uv run forge_status.py [cycle-id]
-    uv run forge_status.py --validate
-    uv run forge_status.py --all
-"""
+"""Check FORGE status and validate phase requirements."""
 
 import argparse
-import json
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
 
-
 PHASES = ["Focus", "Orchestrate", "Refine", "Generate", "Evaluate"]
-PHASE_ICONS = {
-    "Focus": "🎯",
-    "Orchestrate": "📝",
-    "Refine": "🔨",
-    "Generate": "🚀",
-    "Evaluate": "📊"
-}
+
+
+@dataclass
+class PhaseStatus:
+    """Status of a single phase."""
+
+    name: str
+    state: str  # Active, Complete, Pending
+    total_items: int
+    completed_items: int
+    items: list[tuple[bool, str]]  # (completed, text)
+
+    @property
+    def progress(self) -> float:
+        """Calculate progress percentage."""
+        if self.total_items == 0:
+            return 0.0
+        return (self.completed_items / self.total_items) * 100
+
+
+@dataclass
+class CycleStatus:
+    """Status of a development cycle."""
+
+    cycle_id: str
+    path: Path
+    active_phase: str
+    phases: dict[str, PhaseStatus]
 
 
 def get_forge_dir() -> Path:
     """Get the .forge directory path."""
-    forge_dir = Path.cwd() / ".forge"
-    if not forge_dir.exists():
-        raise FileNotFoundError(".forge/ not found. Run forge_init.py first.")
-    return forge_dir
+    return Path.cwd() / ".forge"
 
 
-def parse_cycle_file(path: Path) -> dict:
-    """Parse a cycle markdown file into structured data."""
+def parse_cycle(path: Path) -> CycleStatus:
+    """Parse a cycle file and extract status."""
     content = path.read_text()
+    cycle_id = path.stem
 
-    # Extract feature name
-    feature_match = re.search(r'^# Feature: (.+)$', content, re.MULTILINE)
-    feature = feature_match.group(1) if feature_match else "Unknown"
-
-    # Extract metadata
-    created_match = re.search(r'\*\*Created\*\*: (.+)$', content, re.MULTILINE)
-    status_match = re.search(r'\*\*Status\*\*: (.+)$', content, re.MULTILINE)
-    priority_match = re.search(r'\*\*Priority\*\*: (.+)$', content, re.MULTILINE)
-
-    # Parse phases
     phases = {}
-    current_phase = None
+    active_phase = None
 
-    for i, phase in enumerate(PHASES):
-        phase_pattern = rf'### Phase {i+1}: {phase} \[(\w+)\](.*?)(?=### Phase|\Z)'
-        phase_match = re.search(phase_pattern, content, re.DOTALL)
-        if phase_match:
-            status = phase_match.group(1)
-            tasks_content = phase_match.group(2)
+    # Parse each phase
+    for phase_name in PHASES:
+        # Find phase marker
+        marker_pattern = rf"<!-- FORGE_PHASE:{phase_name}:(\w+) -->"
+        marker_match = re.search(marker_pattern, content)
 
-            # Parse tasks
-            tasks = []
-            for m in re.finditer(r'- \[([x ])\] (.+)$', tasks_content, re.MULTILINE):
-                tasks.append({
-                    "completed": m.group(1) == "x",
-                    "description": m.group(2).strip()
-                })
+        if not marker_match:
+            state = "Pending"
+        else:
+            state = marker_match.group(1)
+            if state == "Active":
+                active_phase = phase_name
 
-            completed = len([t for t in tasks if t["completed"]])
-            total = len(tasks)
+        # Find phase section and extract checkboxes
+        section_pattern = rf"## Phase \d+: {phase_name}.*?(?=## Phase \d+:|---\s*$|\Z)"
+        section_match = re.search(section_pattern, content, re.DOTALL)
 
-            phases[phase.lower()] = {
-                "status": status,
-                "completed": completed,
-                "total": total,
-                "progress": round(completed / total * 100) if total > 0 else 0,
-                "tasks": tasks
-            }
+        items = []
+        if section_match:
+            section = section_match.group(0)
+            # Find all checkboxes
+            checkbox_pattern = r"- \[([ xX])\] (.+?)(?:\n|$)"
+            for match in re.finditer(checkbox_pattern, section):
+                completed = match.group(1).lower() == "x"
+                text = match.group(2).strip()
+                items.append((completed, text))
 
-            if status == "Active":
-                current_phase = phase
+        total_items = len(items)
+        completed_items = sum(1 for completed, _ in items if completed)
 
-    # Calculate overall progress
-    total_tasks = sum(p["total"] for p in phases.values())
-    completed_tasks = sum(p["completed"] for p in phases.values())
-    overall_progress = round(completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
+        phases[phase_name] = PhaseStatus(
+            name=phase_name,
+            state=state,
+            total_items=total_items,
+            completed_items=completed_items,
+            items=items,
+        )
 
-    return {
-        "id": path.stem,
-        "feature": feature,
-        "created": created_match.group(1) if created_match else None,
-        "status": status_match.group(1) if status_match else "Focus",
-        "priority": priority_match.group(1) if priority_match else "medium",
-        "current_phase": current_phase,
-        "phases": phases,
-        "overall_progress": overall_progress,
-        "total_tasks": total_tasks,
-        "completed_tasks": completed_tasks,
-        "path": str(path)
-    }
+    return CycleStatus(
+        cycle_id=cycle_id,
+        path=path,
+        active_phase=active_phase or "Focus",
+        phases=phases,
+    )
 
 
-def get_status(cycle_id: str = None, include_all: bool = False) -> dict:
-    """Get status of cycles."""
+def get_active_cycles() -> list[CycleStatus]:
+    """Get all active cycles."""
     forge_dir = get_forge_dir()
     active_dir = forge_dir / "cycles" / "active"
+
+    if not active_dir.exists():
+        return []
 
     cycles = []
+    for path in sorted(active_dir.glob("*.md")):
+        cycles.append(parse_cycle(path))
 
-    if cycle_id:
-        # Specific cycle
-        cycle_path = active_dir / f"{cycle_id}.md"
-        if not cycle_path.exists():
-            # Check completed
-            cycle_path = forge_dir / "cycles" / "completed" / f"{cycle_id}.md"
-        if not cycle_path.exists():
-            return {"success": False, "error": f"Cycle '{cycle_id}' not found"}
-        cycles.append(parse_cycle_file(cycle_path))
-    else:
-        # All active cycles
-        if active_dir.exists():
-            for path in sorted(active_dir.glob("*.md")):
-                cycles.append(parse_cycle_file(path))
-
-        if include_all:
-            completed_dir = forge_dir / "cycles" / "completed"
-            if completed_dir.exists():
-                for path in sorted(completed_dir.glob("*.md")):
-                    cycle = parse_cycle_file(path)
-                    cycle["completed"] = True
-                    cycles.append(cycle)
-
-    return {
-        "success": True,
-        "count": len(cycles),
-        "cycles": cycles
-    }
+    return cycles
 
 
-def validate_checkpoint(cycle_id: str = None) -> dict:
-    """Run checkpoint validation on cycle."""
+def print_status(detailed: bool = False) -> None:
+    """Print current FORGE status."""
     forge_dir = get_forge_dir()
-    active_dir = forge_dir / "cycles" / "active"
 
-    # Find cycle
-    if cycle_id:
-        cycle_path = active_dir / f"{cycle_id}.md"
-    else:
-        cycles = list(active_dir.glob("*.md"))
-        if len(cycles) == 0:
-            return {"success": False, "error": "No active cycles"}
-        if len(cycles) > 1:
-            return {"success": False, "error": f"Multiple cycles. Specify one: {[c.stem for c in cycles]}"}
-        cycle_path = cycles[0]
+    if not forge_dir.exists():
+        print("FORGE not initialized. Run forge_init.py first.")
+        return
 
-    if not cycle_path.exists():
-        return {"success": False, "error": f"Cycle not found: {cycle_id}"}
+    cycles = get_active_cycles()
 
-    cycle = parse_cycle_file(cycle_path)
-    current_phase = cycle["current_phase"]
+    if not cycles:
+        print("No active cycles.")
+        print("Start one with: uv run forge_cycle.py new \"feature-name\"")
+        return
 
-    if not current_phase:
-        return {"success": False, "error": "Could not determine current phase"}
+    print("FORGE Status")
+    print("=" * 50)
 
-    phase_data = cycle["phases"].get(current_phase.lower(), {})
-    tasks = phase_data.get("tasks", [])
+    for cycle in cycles:
+        print(f"\nCycle: {cycle.cycle_id}")
+        print(f"Active Phase: {cycle.active_phase}")
+        print()
 
-    # Validation rules per phase
-    issues = []
-    warnings = []
+        for phase_name in PHASES:
+            phase = cycle.phases[phase_name]
 
-    if current_phase == "Focus":
-        # Must have test scenarios
-        test_task = any("test scenario" in t["description"].lower() for t in tasks if t["completed"])
-        if not test_task:
-            issues.append("MANDATORY: Test scenarios must be defined before advancing")
+            # Status indicator
+            if phase.state == "Complete":
+                indicator = "[x]"
+            elif phase.state == "Active":
+                indicator = "[>]"
+            else:
+                indicator = "[ ]"
 
-        # Should have architecture
-        arch_task = any("architecture" in t["description"].lower() for t in tasks if t["completed"])
-        if not arch_task:
-            warnings.append("Architecture design not marked complete")
+            # Progress
+            if phase.total_items > 0:
+                progress = f"{phase.completed_items}/{phase.total_items}"
+            else:
+                progress = "-"
 
-    elif current_phase == "Orchestrate":
-        # Need minimum 3 tasks defined for next phase
-        if phase_data["total"] < 3:
-            issues.append(f"Need at least 3 tasks (have {phase_data['total']})")
+            print(f"  {indicator} {phase.name}: {progress}")
 
-    elif current_phase == "Refine":
-        # Tests should be written
-        test_task = any("test" in t["description"].lower() for t in tasks if t["completed"])
-        if not test_task:
-            issues.append("No tests marked as complete (TDD requires tests first)")
-
-        # Code review
-        review_task = any("review" in t["description"].lower() for t in tasks if t["completed"])
-        if not review_task:
-            warnings.append("Code review not marked complete")
-
-    elif current_phase == "Generate":
-        # Documentation
-        doc_task = any("doc" in t["description"].lower() for t in tasks if t["completed"])
-        if not doc_task:
-            warnings.append("Documentation not marked complete")
-
-    elif current_phase == "Evaluate":
-        # Metrics
-        if phase_data["completed"] < 1:
-            warnings.append("No evaluation tasks completed")
-
-    valid = len(issues) == 0
-
-    return {
-        "success": True,
-        "cycle_id": cycle["id"],
-        "feature": cycle["feature"],
-        "current_phase": current_phase,
-        "valid": valid,
-        "can_advance": valid,
-        "progress": phase_data["progress"],
-        "completed_tasks": phase_data["completed"],
-        "total_tasks": phase_data["total"],
-        "issues": issues,
-        "warnings": warnings
-    }
+            # Show items in detailed mode
+            if detailed and phase.items:
+                for completed, text in phase.items:
+                    check = "x" if completed else " "
+                    print(f"      [{check}] {text}")
 
 
-def format_progress_bar(progress: int, width: int = 10) -> str:
-    """Create a text progress bar."""
-    filled = int(progress / 100 * width)
-    empty = width - filled
-    return "█" * filled + "░" * empty
+def validate_phase(cycle: CycleStatus) -> tuple[bool, list[str]]:
+    """Validate current phase requirements are met."""
+    phase = cycle.phases[cycle.active_phase]
+
+    incomplete = []
+    for completed, text in phase.items:
+        if not completed:
+            incomplete.append(text)
+
+    can_advance = len(incomplete) == 0
+    return can_advance, incomplete
 
 
-def main():
-    parser = argparse.ArgumentParser(description="FORGE Status")
-    parser.add_argument("cycle_id", nargs="?", help="Specific cycle ID")
-    parser.add_argument("--all", "-a", action="store_true", help="Include completed cycles")
-    parser.add_argument("--validate", "-v", action="store_true", help="Run checkpoint validation")
-    parser.add_argument("--json", action="store_true", help="Output as JSON")
+def print_validation() -> None:
+    """Validate and print phase requirements."""
+    forge_dir = get_forge_dir()
+
+    if not forge_dir.exists():
+        print("FORGE not initialized.")
+        return
+
+    cycles = get_active_cycles()
+
+    if not cycles:
+        print("No active cycles.")
+        return
+
+    for cycle in cycles:
+        print(f"Validating: {cycle.cycle_id}")
+        print(f"Current Phase: {cycle.active_phase}")
+        print()
+
+        can_advance, incomplete = validate_phase(cycle)
+
+        if can_advance:
+            print("All requirements met. Ready to advance.")
+            if cycle.active_phase != "Evaluate":
+                next_idx = PHASES.index(cycle.active_phase) + 1
+                next_phase = PHASES[next_idx]
+                print(f"Next phase: {next_phase}")
+                print()
+                print("Advance with: uv run forge_phase.py advance")
+            else:
+                print("Cycle complete. Archive with:")
+                print(f"  uv run forge_cycle.py complete {cycle.cycle_id}")
+        else:
+            print("Incomplete items:")
+            for item in incomplete:
+                print(f"  - {item}")
+            print()
+            print("Complete these items before advancing.")
+
+
+def main() -> int:
+    """Main entry point."""
+    parser = argparse.ArgumentParser(description="Check FORGE status")
+    parser.add_argument(
+        "--detailed",
+        "-d",
+        action="store_true",
+        help="Show detailed item status",
+    )
+    parser.add_argument(
+        "--validate",
+        "-v",
+        action="store_true",
+        help="Validate phase requirements",
+    )
 
     args = parser.parse_args()
 
-    try:
-        if args.validate:
-            result = validate_checkpoint(args.cycle_id)
-        else:
-            result = get_status(args.cycle_id, args.all)
-    except FileNotFoundError as e:
-        result = {"success": False, "error": str(e)}
-
-    if args.json:
-        print(json.dumps(result, indent=2))
+    if args.validate:
+        print_validation()
     else:
-        if not result.get("success"):
-            print(f"Error: {result.get('error')}", file=sys.stderr)
-            sys.exit(1)
+        print_status(detailed=args.detailed)
 
-        if args.validate:
-            # Checkpoint output
-            status = "✓ PASS" if result["valid"] else "✗ FAIL"
-            print(f"\n{'='*50}")
-            print(f"FORGE Checkpoint: {result['feature']}")
-            print(f"{'='*50}")
-            print(f"Phase: {result['current_phase']} [{status}]")
-            print(f"Progress: [{format_progress_bar(result['progress'])}] {result['progress']}%")
-            print(f"Tasks: {result['completed_tasks']}/{result['total_tasks']}")
-
-            if result["issues"]:
-                print(f"\n❌ Blocking Issues:")
-                for issue in result["issues"]:
-                    print(f"   • {issue}")
-
-            if result["warnings"]:
-                print(f"\n⚠️  Warnings:")
-                for warning in result["warnings"]:
-                    print(f"   • {warning}")
-
-            if result["can_advance"]:
-                print(f"\n✓ Ready to advance to next phase")
-            else:
-                print(f"\n✗ Cannot advance - resolve issues first")
-            print()
-
-        else:
-            # Status output
-            if not result["cycles"]:
-                print("No active cycles found.")
-                print("Create one with: uv run forge_cycle.py new \"feature-name\"")
-                return
-
-            for cycle in result["cycles"]:
-                completed_marker = " [COMPLETED]" if cycle.get("completed") else ""
-                print(f"\n{'='*50}")
-                print(f"📦 {cycle['feature']}{completed_marker}")
-                print(f"{'='*50}")
-                print(f"ID: {cycle['id']}")
-                print(f"Priority: {cycle['priority']}")
-                print(f"Overall: [{format_progress_bar(cycle['overall_progress'])}] {cycle['overall_progress']}%")
-                print()
-
-                for phase_name in PHASES:
-                    phase = cycle["phases"].get(phase_name.lower(), {})
-                    icon = PHASE_ICONS.get(phase_name, "")
-                    status = phase.get("status", "Pending")
-                    progress = phase.get("progress", 0)
-
-                    status_marker = ""
-                    if status == "Active":
-                        status_marker = " ← CURRENT"
-                    elif status == "Complete":
-                        status_marker = " ✓"
-
-                    bar = format_progress_bar(progress)
-                    print(f"{icon} {phase_name:12} [{bar}] {progress:3}%{status_marker}")
-
-                print()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

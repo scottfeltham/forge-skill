@@ -1,126 +1,49 @@
-# Focus Phase 🎯
+# Focus Phase Guide
 
-**Purpose**: Clarity - Define WHAT you're building and WHY
-**Lead Agents**: Architect, Security, Documentation
+**Purpose**: Clarity - What are you actually building?
 
-## Core Question
+## Key Question
 
-> "What problem are we solving and for whom?"
+Can you explain what you're building to someone unfamiliar with it in under two minutes, and have them understand both the problem and what success looks like?
 
-## Goals
+## Required Outputs
 
-1. Define the specific problem statement (not vague goals)
-2. Identify target users (not "everyone")
-3. Write testable success criteria ("loads in <2s" not "should be fast")
-4. Create System Context diagram (C4 Level 1)
-5. Define clear boundaries - what you WON'T build
+1. **Problem Statement** - What problem exists and for whom?
+2. **Target Users** - Who specifically will use this?
+3. **Success Criteria** - Testable outcomes (not vague aspirations)
+4. **System Context Diagram** - C4 Level 1 showing system boundaries
+5. **Scope Boundaries** - What you explicitly WON'T build
 
-## MANDATORY: Test Scenarios First
+## Success Criteria Quality
 
-**No design or code without test scenarios.**
+Bad: "The system should be fast"
+Good: "Page loads in under 2 seconds on 3G connections"
 
-Before any architecture work, define:
-- What are the expected inputs and outputs?
-- What are the success criteria?
-- What edge cases exist?
-- How will we know it's working?
+Bad: "Users should find it easy to use"
+Good: "New users complete onboarding in under 3 minutes without help"
 
-## Tasks Checklist
+## C4 Level 1: System Context
 
-- [ ] **Define problem statement** - Specific problem, not vague goals
-- [ ] **Identify target users** - Who exactly benefits?
-- [ ] **Write success criteria** - Testable, measurable outcomes
-- [ ] **Define test scenarios** (MANDATORY) - How will we verify success?
-- [ ] **Create System Context (C4 L1)** - System boundaries and actors
-- [ ] **Define constraints** - What we WON'T build
-- [ ] **Identify security risks** - What could go wrong?
-- [ ] **Create/Update PRD** - Document decisions
+Shows your system as a box in the center with:
+- Users/actors on the outside
+- External systems it integrates with
+- Data flows between them
 
-## Agent Contributions
+## Completion Checklist
 
-### Architect Agent (Primary)
-Focus on:
-- Specific problem statement (not vague goals)
-- Target users (not "everyone")
-- Testable success criteria ("loads in <2s" not "should be fast")
-- System Context diagram (C4 Level 1)
-- Clear boundaries - what you WON'T build
-
-### Security Agent
-Focus on:
-- Threat modeling
-- Authentication/authorization needs
-- Data protection requirements
-- Compliance considerations
-
-### Documentation Agent
-Focus on:
-- PRD creation/updates
-- Requirements documentation
-- Decision records
-
-## Test Scenario Format
-
-```gherkin
-Feature: [Feature Name]
-
-Scenario: [Happy path description]
-  Given [initial context]
-  When [action taken]
-  Then [expected result]
-
-Example:
-  Input: [Concrete input value]
-  Output: [Expected output value]
-
-Scenario: [Edge case description]
-  Given [initial context]
-  When [edge case action]
-  Then [expected handling]
-
-Scenario: [Error case description]
-  Given [initial context]
-  When [error condition]
-  Then [error handling]
-```
-
-## Validation Gate
-
-Before advancing to Orchestrate, verify:
-
-```bash
-uv run .claude/skills/forge/tools/forge_status.py --validate
-```
-
-**Must have:**
-- [ ] Problem statement defined (specific, not vague)
-- [ ] Target users identified
-- [ ] Test scenarios completed
-- [ ] Success criteria are testable
-- [ ] System Context (C4 L1) documented
-- [ ] Security risks identified
-
-## Commands
-
-```bash
-# Mark task complete
-uv run .claude/skills/forge/tools/forge_phase.py complete-task "test scenarios"
-
-# Add additional task
-uv run .claude/skills/forge/tools/forge_phase.py add-task "Review with stakeholders"
-
-# Check if ready to advance
-uv run .claude/skills/forge/tools/forge_status.py --validate
-
-# Advance to Orchestrate
-uv run .claude/skills/forge/tools/forge_phase.py advance
-```
+- [ ] Problem statement clearly articulates the pain point
+- [ ] Target users are specific (not "everyone")
+- [ ] Success criteria are measurable and testable
+- [ ] System context diagram exists
+- [ ] Out-of-scope items are explicitly listed
 
 ## Common Mistakes
 
-1. **Jumping to implementation** - Stay focused on WHAT and WHY, not HOW
-2. **Skipping test scenarios** - This will block phase advancement
-3. **Vague requirements** - "Should be fast" is not testable
-4. **Ignoring security** - Address risks early, not after implementation
-5. **Building for "everyone"** - Be specific about who this is for
-6. **No clear boundaries** - Define what you WON'T build
+- Starting with solutions instead of problems
+- Vague success criteria that can't be tested
+- Scope that's too large for one cycle
+- Skipping the "what we won't build" section
+
+## Next Phase
+
+When Focus is complete, advance to **Orchestrate** where you'll break the work into session-sized pieces.
