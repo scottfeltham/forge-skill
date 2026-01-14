@@ -1,6 +1,11 @@
 # FORGE Skill for Claude Code
 
-A standalone Claude Code skill that implements the FORGE development framework - Intent-Driven Development (IDD) for AI-assisted software engineering.
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/scottfeltham/forge-skill)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A Claude Code skill that implements the FORGE development framework - Intent-Driven Development (IDD) for AI-assisted software engineering.
+
+> **Also available as**: [forge-mcp-server](https://www.npmjs.com/package/forge-mcp-server) for MCP-compatible tools (Cursor, VS Code, etc.)
 
 ## What is FORGE?
 
@@ -145,7 +150,8 @@ Verify output matches intent.
 
 ```
 .claude/skills/forge/
-├── skill.md                    # Main skill definition
+├── SKILL.md                    # Main skill definition
+├── marketplace.json            # Marketplace metadata
 ├── tools/                      # Python CLI tools
 │   ├── forge_init.py
 │   ├── forge_cycle.py
@@ -209,6 +215,19 @@ Each phase has validation requirements:
 - Edge cases tested
 - Disposition decided
 
+## Related Projects
+
+- **[forge-mcp-server](https://github.com/scottfeltham/forge-mcp)** - MCP server for Cursor, VS Code, JetBrains, etc.
+- **[Intent-Driven Development Book](https://github.com/scottfeltham/intentdrivendevelopment-book)** - The methodology behind FORGE
+
+## Contributing
+
+Contributions welcome! Please read the [Contributing Guidelines](CONTRIBUTING.md) first.
+
 ## License
 
 MIT
+
+## Author
+
+Scott Feltham ([@scottfeltham](https://github.com/scottfeltham)) - scott@neoforge.co
