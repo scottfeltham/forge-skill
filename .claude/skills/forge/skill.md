@@ -12,6 +12,31 @@ allowed-tools: Read, Write, Edit, Bash(uv:*), Bash(python:*), Glob, Grep
 
 FORGE (Focus-Orchestrate-Refine-Generate-Evaluate) is an Intent-Driven Development (IDD) methodology for AI-assisted software development.
 
+## Interactive Workflow: Clarity Before Action
+
+During **Focus, Orchestrate, and Refine** phases, you must gain clarity before proceeding:
+
+1. **Assess clarity** - Are the requirements/inputs clear or vague?
+2. **If vague** → Ask targeted clarifying questions (use `prompts/prd-conversation.md` as a guide)
+3. **Always** → Summarize your understanding and confirm with the user before advancing
+
+### Phase Confirmation Pattern
+
+| Phase | Summarize & Confirm |
+|-------|---------------------|
+| **Focus** | "Problem: X. Users: Y. Success: Z. Boundaries: [in/out of scope]. Correct?" |
+| **Orchestrate** | "Architecture: N containers/components. Dependencies: [map]. Task breakdown: [list]. Correct?" |
+| **Refine** | "Acceptance criteria: [Given-When-Then]. Edge cases: [categories]. Interfaces: [specs]. Correct?" |
+
+Only advance after user confirms. Generate and Evaluate phases may proceed without additional confirmation once Refine is validated.
+
+### Resolving Clarity Issues (Any Phase)
+
+If clarity issues arise at any phase, you may:
+- Ask targeted clarifying questions
+- Invoke specialist agents for guidance
+- Recommend returning to an earlier phase
+
 ## Tool Commands
 
 When the user wants to work with FORGE, run the appropriate command:
