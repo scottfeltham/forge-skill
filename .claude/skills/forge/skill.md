@@ -124,9 +124,36 @@ Learning categories: `pattern`, `anti-pattern`, `decision`, `tool`
 
 **Dispositions**: Accept | Accept with issues | Revise | Reject
 
+## Document Creation
+
+During each phase, create and maintain documents in `docs/`:
+
+```
+docs/
+├── prd.md                      # Focus: Problem statement, users, success criteria, scope
+├── architecture/
+│   ├── system-context.md       # Focus: C4 Level 1 - system boundaries
+│   ├── containers.md           # Orchestrate: C4 Level 2 - deployable units
+│   └── components.md           # Orchestrate: C4 Level 3 - internal structure
+├── specs/
+│   ├── acceptance-criteria.md  # Refine: Given-When-Then scenarios
+│   ├── interfaces.md           # Refine: inputs, outputs, error contracts
+│   └── edge-cases.md           # Refine: categorized edge cases
+└── tasks.md                    # Orchestrate: session-sized task breakdown
+```
+
+**Phase → Document mapping:**
+| Phase | Create/Update |
+|-------|---------------|
+| Focus | `prd.md`, `architecture/system-context.md` |
+| Orchestrate | `architecture/containers.md`, `architecture/components.md`, `tasks.md` |
+| Refine | `specs/acceptance-criteria.md`, `specs/interfaces.md`, `specs/edge-cases.md` |
+
+Create documents as you complete phase work. These are the source of truth for Generate and Evaluate phases.
+
 ## State Management
 
-All state lives in `.forge/`:
+All cycle state lives in `.forge/`:
 ```
 .forge/
 ├── config.yaml
