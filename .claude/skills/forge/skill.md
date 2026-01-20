@@ -126,28 +126,29 @@ Learning categories: `pattern`, `anti-pattern`, `decision`, `tool`
 
 ## Document Creation
 
-During each phase, create and maintain documents in `docs/`:
+During each phase, create and maintain documents in `docs/`. Documents are organized per cycle/feature:
 
 ```
 docs/
-├── prd.md                      # Focus: Problem statement, users, success criteria, scope
-├── architecture/
-│   ├── system-context.md       # Focus: C4 Level 1 - system boundaries
-│   ├── containers.md           # Orchestrate: C4 Level 2 - deployable units
-│   └── components.md           # Orchestrate: C4 Level 3 - internal structure
-├── specs/
-│   ├── acceptance-criteria.md  # Refine: Given-When-Then scenarios
-│   ├── interfaces.md           # Refine: inputs, outputs, error contracts
-│   └── edge-cases.md           # Refine: categorized edge cases
-└── tasks.md                    # Orchestrate: session-sized task breakdown
+├── prd/
+│   └── <cycle-name>.md         # Focus: Problem statement, users, success criteria, scope
+├── tasks/
+│   └── <cycle-name>.md         # Orchestrate: Session-sized task breakdown
+└── <cycle-name>/
+    ├── system-context.md       # Focus: C4 Level 1 - system boundaries
+    ├── containers.md           # Orchestrate: C4 Level 2 - deployable units
+    ├── components.md           # Orchestrate: C4 Level 3 - internal structure
+    ├── acceptance-criteria.md  # Refine: Given-When-Then scenarios
+    ├── interfaces.md           # Refine: inputs, outputs, error contracts
+    └── edge-cases.md           # Refine: categorized edge cases
 ```
 
 **Phase → Document mapping:**
 | Phase | Create/Update |
 |-------|---------------|
-| Focus | `prd.md`, `architecture/system-context.md` |
-| Orchestrate | `architecture/containers.md`, `architecture/components.md`, `tasks.md` |
-| Refine | `specs/acceptance-criteria.md`, `specs/interfaces.md`, `specs/edge-cases.md` |
+| Focus | `prd/<cycle>.md`, `<cycle>/system-context.md` |
+| Orchestrate | `tasks/<cycle>.md`, `<cycle>/containers.md`, `<cycle>/components.md` |
+| Refine | `<cycle>/acceptance-criteria.md`, `<cycle>/interfaces.md`, `<cycle>/edge-cases.md` |
 
 Create documents as you complete phase work. These are the source of truth for Generate and Evaluate phases.
 
