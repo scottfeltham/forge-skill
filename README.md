@@ -158,6 +158,8 @@ Verify output matches intent.
 │   ├── forge_phase.py
 │   ├── forge_status.py
 │   └── forge_learn.py
+├── hooks/                      # Claude Code hooks
+│   └── forge-phase-guard.sh    # Phase constraint enforcement
 ├── prompts/                    # Prompt templates
 │   ├── prd-conversation.md
 │   └── retrospective.md
@@ -169,6 +171,50 @@ Verify output matches intent.
         ├── generate.md
         └── evaluate.md
 ```
+
+## Claude Code Integration
+
+FORGE leverages Claude Code's native tools when available:
+
+| Phase | Native Tool | Purpose |
+|-------|-------------|---------|
+| Focus | `AskUserQuestion` | Gather requirements, clarify scope |
+| Orchestrate | `AskUserQuestion` | Validate architecture decisions |
+| Refine | `AskUserQuestion` | Confirm acceptance criteria |
+| Generate | `TodoWrite` | Track TDD implementation tasks |
+| Evaluate | `AskUserQuestion` | Confirm verification results |
+
+### Phase Enforcement Hook
+
+To automatically enforce phase constraints (block code writes during Focus/Orchestrate/Refine):
+
+1. **Copy hook to your project**:
+   ```bash
+   mkdir -p .claude/hooks
+   cp ~/.claude/skills/forge/hooks/forge-phase-guard.sh .claude/hooks/
+   chmod +x .claude/hooks/forge-phase-guard.sh
+   ```
+
+2. **Configure in `.claude/settings.json`**:
+   ```json
+   {
+     "hooks": {
+       "PreToolUse": [
+         {
+           "matcher": "Edit|Write",
+           "command": [".claude/hooks/forge-phase-guard.sh"]
+         }
+       ]
+     }
+   }
+   ```
+
+3. **What the hook does**:
+   - **Allows** writes to `docs/` in any phase (PRDs, specs, architecture)
+   - **Allows** writes to `.forge/` (state management)
+   - **Allows** test file writes in any phase (TDD support)
+   - **Blocks** code writes during Focus, Orchestrate, Refine phases
+   - **Allows** code writes during Generate and Evaluate phases
 
 ## State Management
 

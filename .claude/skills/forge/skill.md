@@ -30,6 +30,38 @@ During **Focus, Orchestrate, and Refine** phases, you must gain clarity before p
 
 Only advance after user confirms. Generate and Evaluate phases may proceed without additional confirmation once Refine is validated.
 
+## Native Tool Integration (Claude Code)
+
+When running in Claude Code, leverage native tools for enhanced workflow:
+
+| Phase | Native Tool | Purpose |
+|-------|-------------|---------|
+| **Focus** | `AskUserQuestion` | Gather requirements, clarify scope, confirm problem statement |
+| **Orchestrate** | `AskUserQuestion` | Validate architecture decisions, confirm task breakdown |
+| **Refine** | `AskUserQuestion` | Confirm acceptance criteria, validate edge cases |
+| **Generate** | `TodoWrite` | Track implementation tasks (RED-GREEN-REFACTOR steps) |
+| **Evaluate** | `AskUserQuestion` | Confirm verification results, get disposition decision |
+
+**Adaptive behavior:**
+- If `AskUserQuestion` is available, use it for structured clarification with options
+- If `TodoWrite` is available, use it to track Generate phase tasks
+- Fall back to conversational clarification in non-Claude-Code environments
+
+**Example - Using AskUserQuestion in Focus:**
+```
+When clarifying requirements, present structured options:
+- "What is your target user base?" with options like "Internal team", "External customers", "API consumers"
+- This provides better UX than open-ended questions
+```
+
+**Example - Using TodoWrite in Generate:**
+```
+Track TDD workflow:
+1. [in_progress] Write failing test for feature X
+2. [pending] Implement minimal code to pass
+3. [pending] Refactor while tests stay green
+```
+
 ### Resolving Clarity Issues (Any Phase)
 
 If clarity issues arise at any phase, you may:
@@ -170,6 +202,36 @@ All cycle state lives in `.forge/`:
 - Cannot write code during Focus, Orchestrate, or Refine
 - Cannot advance without completing mandatory items
 - Evaluation may send you back to earlier phases
+
+### Hook-Based Enforcement (Claude Code)
+
+For automated phase constraint enforcement, configure hooks in `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": [".claude/hooks/forge-phase-guard.sh"]
+      }
+    ]
+  }
+}
+```
+
+The hook script:
+- Reads current phase from `.forge/cycles/active/`
+- **Allows** all writes to `docs/` (specs, PRDs, architecture docs)
+- **Blocks** code writes during Focus, Orchestrate, Refine phases
+- **Allows** code writes during Generate and Evaluate phases
+
+Install the hook:
+```bash
+mkdir -p .claude/hooks
+cp path/to/forge-skill/.claude/hooks/forge-phase-guard.sh .claude/hooks/
+chmod +x .claude/hooks/forge-phase-guard.sh
+```
 
 ## Key Principle
 
