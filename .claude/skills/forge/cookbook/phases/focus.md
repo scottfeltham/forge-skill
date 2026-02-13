@@ -37,6 +37,19 @@ Shows your system as a box in the center with:
 - [ ] System context diagram exists
 - [ ] Out-of-scope items are explicitly listed
 
+## Commit Checkpoint
+
+After completing the Focus checklist, commit all phase artifacts:
+
+- `docs/prd/<cycle>.md` — problem statement, users, success criteria, scope
+- `docs/<cycle>/system-context.md` — C4 Level 1 diagram
+- `.forge/` state files — cycle creation and phase status
+
+```
+git add docs/prd/<cycle>.md docs/<cycle>/system-context.md .forge/
+git commit -m "focus: add PRD and system context for <cycle>"
+```
+
 ## Common Mistakes
 
 - Starting with solutions instead of problems

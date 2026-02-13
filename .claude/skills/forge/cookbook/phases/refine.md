@@ -75,6 +75,22 @@ For each component interface, document:
 - [ ] Out-of-scope explicitly listed per task
 - [ ] NO CODE WRITTEN
 
+## Commit Checkpoint
+
+After completing the Refine checklist, commit all specification artifacts:
+
+- `docs/<cycle>/acceptance-criteria.md` — Given-When-Then scenarios
+- `docs/<cycle>/interfaces.md` — input/output/error contracts
+- `docs/<cycle>/edge-cases.md` — categorized edge cases
+- `.forge/` state files — phase status
+
+```
+git add docs/<cycle>/acceptance-criteria.md docs/<cycle>/interfaces.md docs/<cycle>/edge-cases.md .forge/
+git commit -m "refine: add acceptance criteria and specs for <cycle>"
+```
+
+**Reminder**: No code should appear in this commit — specifications only.
+
 ## Common Mistakes
 
 - Writing code before criteria are complete

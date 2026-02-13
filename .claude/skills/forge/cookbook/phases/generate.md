@@ -65,6 +65,39 @@ Before marking a task complete:
 - [ ] No linting errors
 - [ ] Code follows project conventions
 
+## Agent Teams Pattern
+
+When using Claude Code Agent Teams for Generate:
+
+**Team composition:**
+- **Team Lead**: Developer (sonnet) — owns TDD implementation
+- **Teammate**: Reviewer (sonnet) — validates code quality and criteria compliance
+
+**Workflow:**
+```
+Orchestrate tasks
+    ↓
+┌─────────────────────────────────┐
+│  For each task:                 │
+│  1. Developer writes RED test   │
+│  2. Developer writes GREEN code │
+│  3. Developer REFACTORs         │
+│  4. Reviewer checks criteria    │
+│  5. Reviewer checks edge cases  │
+└─────────────────────────────────┘
+    ↓
+All tasks complete → Evaluate
+```
+
+**What each teammate receives:**
+- Developer: task description, acceptance criteria from Refine, interface specs, relevant context
+- Reviewer: implementation output, acceptance criteria, edge case list from Refine
+
+**When NOT to use teams:**
+- Single-file bug fixes (just use a solo developer session)
+- Trivial changes like config tweaks or copy updates
+- Prototyping where speed matters more than review
+
 ## Completion Checklist
 
 - [ ] Tests written before implementation
@@ -72,6 +105,21 @@ Before marking a task complete:
 - [ ] Coverage threshold met
 - [ ] Code review completed
 - [ ] Integration verified
+
+## Commit Checkpoint
+
+Commit after each completed TDD cycle, not just at the end of the phase:
+
+- **After each RED-GREEN-REFACTOR cycle**: Commit the test and implementation together so every commit is a green build.
+- **After code review**: Commit any review-driven changes as a separate commit.
+- **After all tasks complete**: Commit `.forge/` state to record phase completion.
+
+```
+git add src/ tests/ .forge/
+git commit -m "generate: implement <feature> with tests"
+```
+
+**Cadence**: Frequent small commits are better than one large commit at the end. Each commit should leave tests passing.
 
 ## Common Mistakes
 

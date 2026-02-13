@@ -50,6 +50,20 @@ For each task, identify:
 - [ ] Tasks sized for single sessions
 - [ ] Build order established
 
+## Commit Checkpoint
+
+After completing the Orchestrate checklist, commit all phase artifacts:
+
+- `docs/tasks/<cycle>.md` — session-sized task breakdown
+- `docs/<cycle>/containers.md` — C4 Level 2 architecture
+- `docs/<cycle>/components.md` — C4 Level 3 architecture
+- `.forge/` state files — dependency map and phase status
+
+```
+git add docs/tasks/<cycle>.md docs/<cycle>/containers.md docs/<cycle>/components.md .forge/
+git commit -m "orchestrate: add architecture and task breakdown for <cycle>"
+```
+
 ## Common Mistakes
 
 - Tasks too large (spanning multiple sessions)

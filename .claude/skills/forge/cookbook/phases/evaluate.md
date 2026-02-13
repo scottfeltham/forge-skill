@@ -48,6 +48,36 @@ Also test edge cases discovered during Generate.
 - [ ] Error handling works across boundaries
 - [ ] Performance meets requirements
 
+## Agent Teams Pattern
+
+When using Claude Code Agent Teams for Evaluate:
+
+**Team composition:**
+- **Team Lead**: Tester (sonnet) — verifies acceptance criteria and edge cases
+- **Teammate**: Security (opus) — performs adversarial review and threat analysis
+
+**Verification workflow:**
+```
+Generate output
+    ↓
+┌──────────────────────────────────────┐
+│  Tester (lead):                      │
+│  1. Line-by-line criteria check      │
+│  2. Run edge case tests              │
+│  3. Verify integration points        │
+├──────────────────────────────────────┤
+│  Security (teammate):                │
+│  1. OWASP top 10 review             │
+│  2. Auth/authz bypass attempts       │
+│  3. Data exposure analysis           │
+└──────────────────────────────────────┘
+    ↓
+Disposition decision
+```
+
+**Competing hypotheses pattern for debugging:**
+When a test fails or unexpected behavior is found, use Security (opus) to generate adversarial hypotheses about root cause while Tester (sonnet) investigates the most likely explanation. This parallel approach catches subtle issues that sequential investigation misses.
+
 ## Disposition Decisions
 
 | Decision | Meaning | Action |
@@ -92,6 +122,21 @@ Consider running a retrospective:
 ```bash
 uv run forge_learn.py retro
 ```
+
+## Commit Checkpoint
+
+Commit verification results and disposition decisions:
+
+- **Verification results**: Commit any additional tests or fixes discovered during evaluation.
+- **Disposition decision**: Commit `.forge/` state recording the Accept/Revise/Reject decision.
+- **Retrospective** (if run): Commit the retrospective output in `.forge/retrospectives/`.
+
+```
+git add .forge/ tests/
+git commit -m "evaluate: verify <cycle> — <disposition>"
+```
+
+If the disposition is **Revise**, commit what you have before returning to Generate so progress is preserved.
 
 ## Common Mistakes
 

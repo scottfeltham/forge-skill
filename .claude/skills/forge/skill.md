@@ -203,6 +203,15 @@ All cycle state lives in `.forge/`:
 - Cannot advance without completing mandatory items
 - Evaluation may send you back to earlier phases
 
+## Commit Cadence
+
+Commit after every meaningful checkpoint — not just at the end of a phase:
+
+- **After each phase checklist item**: When you complete a deliverable (e.g., PRD, acceptance criteria, test suite), commit it immediately.
+- **After phase advancement**: Commit `.forge/` state whenever a phase advances so cycle progress is never lost.
+- **During Generate**: Commit after each completed TDD cycle (RED-GREEN-REFACTOR), not just at task completion.
+- **Commit message convention**: Prefix with the phase name, e.g., `focus: add PRD and system context diagram` or `generate: implement user auth with tests`.
+
 ### Hook-Based Enforcement (Claude Code)
 
 For automated phase constraint enforcement, configure hooks in `.claude/settings.json`:
@@ -232,6 +241,44 @@ mkdir -p .claude/hooks
 cp path/to/forge-skill/.claude/hooks/forge-phase-guard.sh .claude/hooks/
 chmod +x .claude/hooks/forge-phase-guard.sh
 ```
+
+## Model Routing
+
+When using Claude Code Agent Teams, assign model tiers based on cognitive demand:
+
+| Agent | Model | Reasoning |
+|-------|-------|-----------|
+| Architect | opus | Architecture decisions, trade-off analysis |
+| Security | opus | Threat modeling, adversarial thinking |
+| Developer | sonnet | Well-specified implementation tasks |
+| Tester | sonnet | Test writing from specifications |
+| DevOps | sonnet | Infrastructure, config patterns |
+| Documentation | haiku | Structured writing from existing content |
+| Integration Coordinator | sonnet | Cross-component coordination |
+| Reviewer | sonnet | Code quality checks against criteria |
+
+**Complexity overrides:**
+- Promote to opus when the task involves novel architecture, ambiguous requirements, or security-critical decisions
+- Demote to haiku for boilerplate generation, formatting, or simple lookups
+- Default tier applies when task complexity matches the agent's typical workload
+
+## Agent Teams
+
+Map FORGE phases to Claude Code Agent Teams compositions:
+
+| Phase | Team Lead | Teammates | Pattern |
+|-------|-----------|-----------|---------|
+| Focus | Architect (opus) | Security (opus), Documentation (haiku) | Lead defines scope; teammates assess risks and draft PRD |
+| Orchestrate | Architect (opus) | — | Solo decomposition and dependency analysis |
+| Refine | Architect (opus) | Tester (sonnet) | Lead defines interfaces; teammate writes acceptance criteria |
+| Generate | Developer (sonnet) | Reviewer (sonnet) | Lead implements via TDD; teammate reviews each task |
+| Evaluate | Tester (sonnet) | Security (opus) | Lead verifies criteria; teammate performs adversarial review |
+
+**Generate phase detail:**
+- Each task from Orchestrate becomes one teammate session
+- Developer receives: task description, acceptance criteria from Refine, interface specs
+- Reviewer receives: implementation output, acceptance criteria, edge case list
+- One task per session prevents context pollution
 
 ## Key Principle
 
