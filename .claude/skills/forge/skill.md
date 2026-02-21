@@ -4,7 +4,8 @@ description: |
   FORGE development framework for Intent-Driven Development (IDD).
   Use for: forge, FORGE, new cycle, start cycle, advance phase, next phase,
   checkpoint, validate phase, focus, orchestrate, refine, generate, evaluate,
-  cycle status, complete cycle, add learning, retrospective, TDD workflow.
+  cycle status, complete cycle, add learning, retrospective, TDD workflow,
+  product plan, mvp, roadmap, architecture, PRD.
 allowed-tools: Read, Write, Edit, Bash(uv:*), Bash(python:*), Glob, Grep
 ---
 
@@ -103,8 +104,29 @@ Learning categories: `pattern`, `anti-pattern`, `decision`, `tool`
 | **FOCUS** | Clarity | What are you actually building? |
 | **ORCHESTRATE** | Planning | How do you break this into pieces? |
 | **REFINE** | Precision | What specifically does "done" look like? |
-| **GENERATE** | Creation | AI writes code following TDD |
+| **GENERATE** | Creation | AI produces deliverables matching scope |
 | **EVALUATE** | Verification | Does output match intent? |
+
+### Product-Level Cycles
+
+FORGE cycles work at **any scope** - feature, epic, or entire product/MVP. The phases are identical; the **Generated output** changes based on scope.
+
+| Phase | Feature-Level | Product-Level |
+|-------|--------------|---------------|
+| **Focus** | What feature & why | What product/MVP & why |
+| **Orchestrate** | Component architecture, task breakdown | System architecture, feature breakdown |
+| **Refine** | Feature acceptance criteria, interfaces | Product success criteria, per-feature scope |
+| **Generate** | Code (TDD) | Documentation: PRD, architecture docs, roadmap, feature cycle plan |
+| **Evaluate** | Verify code matches intent | Verify plans match intent |
+
+At the product level, Generate produces documentation and plans - not code. Each planned feature then becomes its own FORGE cycle.
+
+**Product-level workflow:**
+1. `forge_cycle.py new "mvp-product-name"` - Create a product-level cycle
+2. Work through Focus/Orchestrate/Refine at the product level
+3. Generate: Produce PRD, architecture docs, and ordered list of feature cycles
+4. Evaluate: Verify plans are complete and match intent
+5. Each feature becomes its own FORGE cycle with code as output
 
 ## Phase Details
 
