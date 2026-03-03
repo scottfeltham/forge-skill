@@ -72,20 +72,31 @@ If clarity issues arise at any phase, you may:
 
 ## Tool Commands
 
-When the user wants to work with FORGE, run the appropriate command:
+The tool scripts are in the `tools/` subdirectory of this skill. Before running the first command, resolve the skill's install location:
+
+```bash
+# Local project install takes priority over global
+if [ -d ".claude/skills/forge/tools" ]; then
+  FORGE_TOOLS=".claude/skills/forge/tools"
+else
+  FORGE_TOOLS="$HOME/.claude/skills/forge/tools"
+fi
+```
+
+Use the resolved path for all commands below. Since shell state does not persist between commands, prefix each invocation: `FORGE_TOOLS=<resolved-path> && uv run "$FORGE_TOOLS/forge_init.py"`, or simply substitute the resolved path directly.
 
 | User Request | Command |
 |-------------|---------|
-| Initialize FORGE | `uv run .claude/skills/forge/tools/forge_init.py` |
-| Start new cycle | `uv run .claude/skills/forge/tools/forge_cycle.py new "name"` |
-| Check status | `uv run .claude/skills/forge/tools/forge_status.py` |
-| Validate phase | `uv run .claude/skills/forge/tools/forge_status.py --validate` |
-| Advance phase | `uv run .claude/skills/forge/tools/forge_phase.py advance` |
-| Complete task | `uv run .claude/skills/forge/tools/forge_phase.py complete-task "desc"` |
-| Add task | `uv run .claude/skills/forge/tools/forge_phase.py add-task "desc"` |
-| Complete cycle | `uv run .claude/skills/forge/tools/forge_cycle.py complete <id>` |
-| Add learning | `uv run .claude/skills/forge/tools/forge_learn.py add <cat> "title" "desc"` |
-| Retrospective | `uv run .claude/skills/forge/tools/forge_learn.py retro` |
+| Initialize FORGE | `uv run "$FORGE_TOOLS/forge_init.py"` |
+| Start new cycle | `uv run "$FORGE_TOOLS/forge_cycle.py" new "name"` |
+| Check status | `uv run "$FORGE_TOOLS/forge_status.py"` |
+| Validate phase | `uv run "$FORGE_TOOLS/forge_status.py" --validate` |
+| Advance phase | `uv run "$FORGE_TOOLS/forge_phase.py" advance` |
+| Complete task | `uv run "$FORGE_TOOLS/forge_phase.py" complete-task "desc"` |
+| Add task | `uv run "$FORGE_TOOLS/forge_phase.py" add-task "desc"` |
+| Complete cycle | `uv run "$FORGE_TOOLS/forge_cycle.py" complete <id>` |
+| Add learning | `uv run "$FORGE_TOOLS/forge_learn.py" add <cat> "title" "desc"` |
+| Retrospective | `uv run "$FORGE_TOOLS/forge_learn.py" retro` |
 
 Learning categories: `pattern`, `anti-pattern`, `decision`, `tool`
 
