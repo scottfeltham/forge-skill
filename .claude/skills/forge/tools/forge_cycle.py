@@ -88,6 +88,9 @@ CYCLE_TEMPLATE = """# Cycle: {name}
 - [ ] RED: Write failing tests
 - [ ] GREEN: Minimal code to pass
 - [ ] REFACTOR: Improve while green
+- [ ] Code review: Linter and type checks pass
+- [ ] Code review: TDD compliance verified
+- [ ] Code review: Acceptance criteria alignment checked
 
 ### Implementation Notes
 
@@ -103,8 +106,85 @@ CYCLE_TEMPLATE = """# Cycle: {name}
 ### Checklist
 - [ ] Criteria verified line-by-line
 - [ ] Edge cases tested
-- [ ] Security review completed
-- [ ] Integration tested
+- [ ] Code review: Full test suite passes with coverage threshold met
+- [ ] Code review: Security review completed
+- [ ] Code review: Integration and interface contracts verified
+- [ ] Disposition decision made
+
+### Disposition
+
+<!-- Accept / Accept with issues / Revise / Reject -->
+
+---
+
+## Learnings
+
+<!-- Capture learnings during and after the cycle -->
+"""
+
+HIL_CYCLE_TEMPLATE = """# Cycle: {name}
+
+**Created**: {created}
+**Priority**: {priority}
+**Status**: Active
+**Mode**: HIL (Human-in-the-Loop)
+
+## Overview
+
+<!-- Describe the change/update this iteration addresses -->
+
+---
+
+<!-- FORGE_PHASE:Refine:Active -->
+## Phase 1: Refine
+
+**Purpose**: Define exactly what "done" looks like for this change.
+
+### Required Outputs
+- [ ] Acceptance criteria in Given-When-Then format
+- [ ] Interface changes documented (if any)
+- [ ] Edge cases enumerated
+- [ ] Constraints vs criteria documented
+
+**CRITICAL**: No code in this phase - specifications only.
+
+### Specifications
+
+<!-- Document specifications here -->
+
+---
+
+<!-- FORGE_PHASE:Generate:Pending -->
+## Phase 2: Generate
+
+**Purpose**: Implement the change following TDD.
+
+### Process
+- [ ] RED: Write failing tests
+- [ ] GREEN: Minimal code to pass
+- [ ] REFACTOR: Improve while green
+- [ ] Code review: Linter and type checks pass
+- [ ] Code review: TDD compliance verified
+- [ ] Code review: Acceptance criteria alignment checked
+
+### Implementation Notes
+
+<!-- Document implementation progress here -->
+
+---
+
+<!-- FORGE_PHASE:Evaluate:Pending -->
+## Phase 3: Evaluate
+
+**Purpose**: Verify output matches intent.
+
+### Checklist
+- [ ] Criteria verified line-by-line
+- [ ] Edge cases tested
+- [ ] Code review: Full test suite passes with coverage threshold met
+- [ ] Code review: Security review completed
+- [ ] Code review: Integration and interface contracts verified
+- [ ] Disposition decision made
 
 ### Disposition
 
@@ -131,7 +211,7 @@ def slugify(name: str) -> str:
     return slug
 
 
-def new_cycle(name: str, priority: str = "medium") -> bool:
+def new_cycle(name: str, priority: str = "medium", mode: str = "full") -> bool:
     """Create a new development cycle."""
     forge_dir = get_forge_dir()
 
@@ -154,8 +234,9 @@ def new_cycle(name: str, priority: str = "medium") -> bool:
         print(f"Error: Cycle already exists: {cycle_path}")
         return False
 
-    # Create cycle file
-    content = CYCLE_TEMPLATE.format(
+    # Select template based on mode
+    template = HIL_CYCLE_TEMPLATE if mode == "hil" else CYCLE_TEMPLATE
+    content = template.format(
         name=name,
         created=timestamp.isoformat(),
         priority=priority,
@@ -164,15 +245,27 @@ def new_cycle(name: str, priority: str = "medium") -> bool:
     with open(cycle_path, "w") as f:
         f.write(content)
 
+    start_phase = "Refine" if mode == "hil" else "Focus"
     print(f"Created cycle: {cycle_id}")
     print(f"  File: {cycle_path}")
-    print(f"  Phase: Focus (Active)")
+    print(f"  Mode: {'HIL (Human-in-the-Loop)' if mode == 'hil' else 'Full'}")
+    print(f"  Phase: {start_phase} (Active)")
     print()
-    print("Next steps:")
-    print("  1. Define problem statement and target users")
-    print("  2. Write testable success criteria")
-    print("  3. Create C4 L1 System Context diagram")
-    print("  4. Set clear boundaries")
+
+    if mode == "hil":
+        print("HIL mode: Refine → Generate → Evaluate")
+        print()
+        print("Next steps:")
+        print("  1. Write acceptance criteria (Given-When-Then)")
+        print("  2. Document interface changes")
+        print("  3. Enumerate edge cases")
+        print("  4. Document constraints vs criteria")
+    else:
+        print("Next steps:")
+        print("  1. Define problem statement and target users")
+        print("  2. Write testable success criteria")
+        print("  3. Create C4 L1 System Context diagram")
+        print("  4. Set clear boundaries")
     print()
     print("Check status: uv run forge_status.py")
 
@@ -284,6 +377,12 @@ def main() -> int:
         default="medium",
         help="Cycle priority (default: medium)",
     )
+    new_parser.add_argument(
+        "--mode",
+        choices=["full", "hil"],
+        default="full",
+        help="Cycle mode: full (all 5 phases) or hil (Refine-Generate-Evaluate only)",
+    )
 
     # list command
     subparsers.add_parser("list", help="List all cycles")
@@ -295,7 +394,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.command == "new":
-        success = new_cycle(args.name, args.priority)
+        success = new_cycle(args.name, args.priority, args.mode)
         return 0 if success else 1
     elif args.command == "list":
         list_cycles()

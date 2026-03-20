@@ -5,7 +5,8 @@ description: |
   Use for: forge, FORGE, new cycle, start cycle, advance phase, next phase,
   checkpoint, validate phase, focus, orchestrate, refine, generate, evaluate,
   cycle status, complete cycle, add learning, retrospective, TDD workflow,
-  product plan, mvp, roadmap, architecture, PRD.
+  product plan, mvp, roadmap, architecture, PRD, hil, hil mode,
+  human in the loop, iterate, tweak, refine cycle.
 allowed-tools: Read, Write, Edit, Bash(uv:*), Bash(python:*), Glob, Grep
 ---
 
@@ -70,6 +71,50 @@ If clarity issues arise at any phase, you may:
 - Invoke specialist agents for guidance
 - Recommend returning to an earlier phase
 
+## HIL Mode (Human-in-the-Loop)
+
+HIL mode is a streamlined 3-phase cycle for active development — when you're already in the code, know what you're building, and are iterating on existing capabilities.
+
+### When to Use HIL vs Full FORGE
+
+| Signal | Mode | Reasoning |
+|--------|------|-----------|
+| Entirely new feature or capability | **Full** | Needs Focus (what/why) and Orchestrate (architecture) |
+| Refining/tweaking existing design | **HIL** | Context already established, jump to Refine |
+| Bug fix with clear reproduction | **HIL** | Acceptance criteria are the fix; skip planning |
+| Design iteration after feedback | **HIL** | Re-enter at Refine with updated criteria |
+| New system or major component | **Full** | Needs architectural decisions upfront |
+| Updating processes to fit a design | **HIL** | The "what" is known; define "done" and implement |
+
+### HIL Workflow
+
+```
+Refine → Generate → Evaluate (→ loop back to Refine if needed)
+```
+
+1. **Refine**: Define what "done" looks like for this specific change
+   - Acceptance criteria (Given-When-Then)
+   - Interface changes (if any)
+   - Edge cases for the change
+2. **Generate**: Implement via TDD (RED → GREEN → REFACTOR)
+3. **Evaluate**: Verify against criteria, decide disposition
+
+### Creating a HIL Cycle
+
+```bash
+uv run "$FORGE_TOOLS/forge_cycle.py" new "description of change" --mode hil
+```
+
+### Iterative HIL Pattern
+
+For ongoing active development, each update/tweak can be its own HIL cycle:
+1. Create HIL cycle describing the change
+2. Refine: Specify acceptance criteria for this iteration
+3. Generate: Implement with TDD
+4. Evaluate: Verify and decide — Accept, or loop back to Refine
+
+This keeps FORGE discipline (specifications before code, TDD, verification) without the overhead of full planning phases when the context is already established.
+
 ## Tool Commands
 
 The tool scripts are in the `tools/` subdirectory of this skill. Before running the first command, resolve the skill's install location:
@@ -89,6 +134,7 @@ Use the resolved path for all commands below. Since shell state does not persist
 |-------------|---------|
 | Initialize FORGE | `uv run "$FORGE_TOOLS/forge_init.py"` |
 | Start new cycle | `uv run "$FORGE_TOOLS/forge_cycle.py" new "name"` |
+| Start HIL cycle | `uv run "$FORGE_TOOLS/forge_cycle.py" new "name" --mode hil` |
 | Check status | `uv run "$FORGE_TOOLS/forge_status.py"` |
 | Validate phase | `uv run "$FORGE_TOOLS/forge_status.py" --validate` |
 | Advance phase | `uv run "$FORGE_TOOLS/forge_phase.py" advance` |
@@ -304,14 +350,20 @@ Map FORGE phases to Claude Code Agent Teams compositions:
 | Focus | Architect (opus) | Security (opus), Documentation (haiku) | Lead defines scope; teammates assess risks and draft PRD |
 | Orchestrate | Architect (opus) | — | Solo decomposition and dependency analysis |
 | Refine | Architect (opus) | Tester (sonnet) | Lead defines interfaces; teammate writes acceptance criteria |
-| Generate | Developer (sonnet) | Reviewer (sonnet) | Lead implements via TDD; teammate reviews each task |
-| Evaluate | Tester (sonnet) | Security (opus) | Lead verifies criteria; teammate performs adversarial review |
+| Generate | Developer (sonnet) | Reviewer (sonnet) | Lead implements via TDD; reviewer checks each task against criteria |
+| Evaluate | Tester (sonnet) | Reviewer (sonnet), Security (opus) | Tester verifies criteria; reviewer does final code review; security does adversarial review |
 
 **Generate phase detail:**
 - Each task from Orchestrate becomes one teammate session
 - Developer receives: task description, acceptance criteria from Refine, interface specs
-- Reviewer receives: implementation output, acceptance criteria, edge case list
+- Reviewer checks after each TDD cycle: test-first compliance, criteria alignment, code quality
 - One task per session prevents context pollution
+
+**Evaluate phase detail:**
+- Reviewer performs final holistic review: security posture, integration contracts, overall quality
+- Tester verifies acceptance criteria line-by-line and edge case coverage
+- Security agent performs adversarial review on security-critical code
+- Reviewer disposition feeds into cycle disposition decision
 
 ## Key Principle
 

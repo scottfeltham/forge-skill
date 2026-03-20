@@ -10,7 +10,15 @@ import re
 import sys
 from pathlib import Path
 
-PHASES = ["Focus", "Orchestrate", "Refine", "Generate", "Evaluate"]
+ALL_PHASES = ["Focus", "Orchestrate", "Refine", "Generate", "Evaluate"]
+
+
+def get_cycle_phases(content: str) -> list[str]:
+    """Extract the ordered list of phases present in a cycle file."""
+    pattern = r"<!-- FORGE_PHASE:(\w+):\w+ -->"
+    found = re.findall(pattern, content)
+    # Preserve order from ALL_PHASES, only include phases present in the file
+    return [p for p in ALL_PHASES if p in found]
 
 
 def get_forge_dir() -> Path:
@@ -61,7 +69,7 @@ def get_phase_items(content: str, phase_name: str) -> list[tuple[bool, str]]:
 
 def update_phase_state(content: str, phase_name: str, new_state: str) -> str:
     """Update phase state marker in content."""
-    pattern = rf"(<!-- FORGE_PHASE:{phase_name}:)\w+(-->)"
+    pattern = rf"(<!-- FORGE_PHASE:{phase_name}:)\w+( -->)"
     return re.sub(pattern, rf"\g<1>{new_state}\2", content)
 
 
@@ -80,10 +88,21 @@ def advance_phase(force: bool = False) -> bool:
         print("Error: Could not determine current phase.")
         return False
 
+    # Detect phases from cycle file
+    phases = get_cycle_phases(content)
+
+    if not phases:
+        print("Error: No phases found in cycle file.")
+        return False
+
     # Check if at final phase
-    if current_phase == "Evaluate":
-        print("Already at final phase (Evaluate).")
+    if current_phase == phases[-1]:
+        print(f"Already at final phase ({current_phase}).")
         print(f"Complete the cycle with: uv run forge_cycle.py complete {cycle_path.stem}")
+        return False
+
+    if current_phase not in phases:
+        print(f"Error: Current phase {current_phase} not found in cycle.")
         return False
 
     # Validate current phase requirements
@@ -102,8 +121,8 @@ def advance_phase(force: bool = False) -> bool:
         print(f"Warning: Forcing advance with {len(incomplete)} incomplete items.")
 
     # Get next phase
-    current_idx = PHASES.index(current_phase)
-    next_phase = PHASES[current_idx + 1]
+    current_idx = phases.index(current_phase)
+    next_phase = phases[current_idx + 1]
 
     # Update content
     content = update_phase_state(content, current_phase, "Complete")

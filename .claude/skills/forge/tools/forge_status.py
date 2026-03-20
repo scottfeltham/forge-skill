@@ -13,7 +13,14 @@ from pathlib import Path
 
 import yaml
 
-PHASES = ["Focus", "Orchestrate", "Refine", "Generate", "Evaluate"]
+ALL_PHASES = ["Focus", "Orchestrate", "Refine", "Generate", "Evaluate"]
+
+
+def get_cycle_phases(content: str) -> list[str]:
+    """Extract the ordered list of phases present in a cycle file."""
+    pattern = r"<!-- FORGE_PHASE:(\w+):\w+ -->"
+    found = re.findall(pattern, content)
+    return [p for p in ALL_PHASES if p in found]
 
 
 @dataclass
@@ -56,9 +63,10 @@ def parse_cycle(path: Path) -> CycleStatus:
 
     phases = {}
     active_phase = None
+    cycle_phases = get_cycle_phases(content)
 
     # Parse each phase
-    for phase_name in PHASES:
+    for phase_name in cycle_phases:
         # Find phase marker
         marker_pattern = rf"<!-- FORGE_PHASE:{phase_name}:(\w+) -->"
         marker_match = re.search(marker_pattern, content)
@@ -98,7 +106,7 @@ def parse_cycle(path: Path) -> CycleStatus:
     return CycleStatus(
         cycle_id=cycle_id,
         path=path,
-        active_phase=active_phase or "Focus",
+        active_phase=active_phase or cycle_phases[0],
         phases=phases,
     )
 
@@ -141,7 +149,7 @@ def print_status(detailed: bool = False) -> None:
         print(f"Active Phase: {cycle.active_phase}")
         print()
 
-        for phase_name in PHASES:
+        for phase_name in cycle.phases:
             phase = cycle.phases[phase_name]
 
             # Status indicator
@@ -203,9 +211,10 @@ def print_validation() -> None:
 
         if can_advance:
             print("All requirements met. Ready to advance.")
-            if cycle.active_phase != "Evaluate":
-                next_idx = PHASES.index(cycle.active_phase) + 1
-                next_phase = PHASES[next_idx]
+            phase_list = list(cycle.phases.keys())
+            if cycle.active_phase != phase_list[-1]:
+                next_idx = phase_list.index(cycle.active_phase) + 1
+                next_phase = phase_list[next_idx]
                 print(f"Next phase: {next_phase}")
                 print()
                 print("Advance with: uv run forge_phase.py advance")
