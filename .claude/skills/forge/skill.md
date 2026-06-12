@@ -71,6 +71,37 @@ If clarity issues arise at any phase, you may:
 - Invoke specialist agents for guidance
 - Recommend returning to an earlier phase
 
+## Autonomous (low-oversight) operation
+
+By default the Focus/Orchestrate/Refine phases pause to "Summarize & Confirm" with
+the user. A project can opt into **autonomous operation** instead — run all phases
+and the Generate TDD loop without pausing, and surface to a human **only** at a
+defined risk boundary. Enable it by recording an operating policy in the project's
+`.forge/context.md`; the policy governs every cycle in that project.
+
+A sound policy has two halves:
+
+- **Always autonomous** — planning + all phase docs, writing tests, RED→GREEN→REFACTOR,
+  dark/unwired code, behaviour-preserving refactors, reversible commits to trunk,
+  staging deploys, phase advancement and internal validation. Decide and report;
+  don't ask.
+- **STOP and get a human (the only gates)** — actions that are irreversible or touch
+  production reality. Define these concretely for the project; typical examples:
+  executing credential/IAM changes, enabling auth lockdown on a live endpoint,
+  schema migration / bulk writes on a production datastore, anything that sends real
+  messages or moves real money, deleting a code path still serving live traffic, and
+  production deploys. Also stop if a Focus requirement is genuinely ambiguous and
+  can't be resolved from the project's own docs/code.
+
+The `cycle-review.md` deliverable (see Evaluate, below) is what makes this safe: a
+cycle can *run* without a human in the loop, but it can't *close* without leaving a
+review artifact the human signs off on, and it halts at the first gated step.
+
+> **Naming caveat:** despite the name, **HIL mode is the *leaner* cycle, not the
+> *more-supervised* one.** It skips Focus/Orchestrate (planning) — it does not add
+> human gates. Autonomy is the policy above; HIL vs Full is only about how many
+> phases run. The two compose: prefer HIL for well-briefed work and run it autonomously.
+
 ## HIL Mode (Human-in-the-Loop)
 
 HIL mode is a streamlined 3-phase cycle for active development — when you're already in the code, know what you're building, and are iterating on existing capabilities.
@@ -251,7 +282,8 @@ docs/
     ├── components.md           # Orchestrate: C4 Level 3 - internal structure
     ├── acceptance-criteria.md  # Refine: Given-When-Then scenarios
     ├── interfaces.md           # Refine: inputs, outputs, error contracts
-    └── edge-cases.md           # Refine: categorized edge cases
+    ├── edge-cases.md           # Refine: categorized edge cases
+    └── cycle-review.md         # Evaluate: review-ready summary for human sign-off
 ```
 
 **Phase → Document mapping:**
@@ -260,6 +292,7 @@ docs/
 | Focus | `prd/<cycle>.md`, `<cycle>/system-context.md` |
 | Orchestrate | `tasks/<cycle>.md`, `<cycle>/containers.md`, `<cycle>/components.md` |
 | Refine | `<cycle>/acceptance-criteria.md`, `<cycle>/interfaces.md`, `<cycle>/edge-cases.md` |
+| Evaluate | `<cycle>/cycle-review.md` (AC→test traceability, results, security, autonomy gate, reviewer checklist — see `cookbook/phases/evaluate.md`) |
 
 Create documents as you complete phase work. These are the source of truth for Generate and Evaluate phases.
 

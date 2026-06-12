@@ -105,7 +105,32 @@ When a test fails or unexpected behavior is found, use Security (opus) to genera
 - [ ] Edge cases tested
 - [ ] Integration tested
 - [ ] Security reviewed
+- [ ] Cycle review summary emitted (see below)
 - [ ] Disposition decided
+
+## Cycle Review Summary (required)
+
+Before completing the cycle, emit a review-ready summary at
+`docs/<cycle>/cycle-review.md` (+ an HTML sibling if the project renders docs). This
+is the artifact a human reads to sign off on a cycle — essential when the cycle was
+run autonomously (see "Autonomous (low-oversight) operation" in `skill.md`), since it
+replaces watching the work happen. Required sections:
+
+1. **Header** — cycle id, run mode, ticket(s)/intent, scope delivered, disposition,
+   commit SHA(s) (and whether pushed), production impact.
+2. **What changed** — per-file diff surface (file, ±lines, nature).
+3. **AC → test traceability** — every acceptance criterion mapped to its test(s);
+   any criterion deferred to a later ticket shown as a *visible* skip (no silent gaps).
+4. **Test results** — new pass/skip + regression counts, verbatim. Flag any
+   pre-existing failures as pre-existing (cite their ticket) so they aren't mistaken
+   for cycle-introduced breakage.
+5. **Static checks** — what ran; note honestly if a linter/type-checker is absent.
+6. **Security review** — auth, data exposure, blast radius, reversibility.
+7. **Autonomy gate** — what was NOT done and why (which gated step the cycle stopped at).
+8. **Reviewer checklist** — concrete boxes a human ticks before push / before the
+   next (gated) step.
+
+If the work tracker has a matching card, complete its step and comment the SHA(s).
 
 ## After Evaluate
 

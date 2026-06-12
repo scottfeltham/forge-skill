@@ -109,6 +109,7 @@ CYCLE_TEMPLATE = """# Cycle: {name}
 - [ ] Code review: Full test suite passes with coverage threshold met
 - [ ] Code review: Security review completed
 - [ ] Code review: Integration and interface contracts verified
+- [ ] Cycle review summary emitted (docs/<cycle>/cycle-review.md + HTML sibling)
 - [ ] Disposition decision made
 
 ### Disposition
@@ -184,6 +185,7 @@ HIL_CYCLE_TEMPLATE = """# Cycle: {name}
 - [ ] Code review: Full test suite passes with coverage threshold met
 - [ ] Code review: Security review completed
 - [ ] Code review: Integration and interface contracts verified
+- [ ] Cycle review summary emitted (docs/<cycle>/cycle-review.md + HTML sibling)
 - [ ] Disposition decision made
 
 ### Disposition

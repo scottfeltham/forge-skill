@@ -158,6 +158,7 @@ def advance_phase(force: bool = False) -> bool:
             "Verify against acceptance criteria",
             "Test edge cases",
             "Complete security review",
+            "Cycle review summary -> docs/<cycle>/cycle-review.md (+HTML)",
             "Make disposition decision",
         ],
     }
