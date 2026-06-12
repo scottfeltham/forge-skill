@@ -127,6 +127,7 @@ Verify output matches intent.
 - Line-by-line criteria check
 - Edge case testing
 - Security review
+- Cycle review summary → `docs/<cycle>/cycle-review.md` (AC→test traceability, results, security, autonomy gate, reviewer checklist)
 - Disposition decision: Accept / Revise / Reject
 
 ## CLI Tools
@@ -183,6 +184,13 @@ FORGE leverages Claude Code's native tools when available:
 | Refine | `AskUserQuestion` | Confirm acceptance criteria |
 | Generate | `TodoWrite` | Track TDD implementation tasks |
 | Evaluate | `AskUserQuestion` | Confirm verification results |
+
+These per-phase confirmations are the **default**. A project can opt into
+**autonomous (low-oversight) operation** — run all phases and the TDD loop without
+pausing, gating a human in only at irreversible/production boundaries — by recording
+a policy in its `.forge/context.md`. See "Autonomous (low-oversight) operation" in
+`skill.md`. The required `cycle-review.md` deliverable is what keeps this safe: a
+cycle can run unattended but cannot close without a sign-off artifact.
 
 ### Phase Enforcement Hook
 
@@ -259,6 +267,7 @@ Each phase has validation requirements:
 **Evaluate → Complete**
 - Criteria verified
 - Edge cases tested
+- Cycle review summary emitted (`docs/<cycle>/cycle-review.md`)
 - Disposition decided
 
 ## Related Projects
