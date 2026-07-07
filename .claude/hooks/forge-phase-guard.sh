@@ -37,16 +37,29 @@ if [[ "$FILE_PATH" == */.forge/* ]] || [[ "$FILE_PATH" == .forge/* ]]; then
 fi
 
 # Always allow writes to test files (TDD support)
-if [[ "$FILE_PATH" == *test* ]] || [[ "$FILE_PATH" == *spec* ]] || [[ "$FILE_PATH" == *_test.* ]] || [[ "$FILE_PATH" == *.test.* ]]; then
+# Deliberately narrow: "*test*" alone would allow e.g. src/contest_util.py
+BASENAME=$(basename "$FILE_PATH")
+if [[ "$BASENAME" == test_* ]] || [[ "$BASENAME" == *_test.* ]] || \
+   [[ "$BASENAME" == *.test.* ]] || [[ "$BASENAME" == *.spec.* ]] || \
+   [[ "$BASENAME" == *_spec.* ]] || \
+   [[ "$FILE_PATH" == */tests/* ]] || [[ "$FILE_PATH" == tests/* ]] || \
+   [[ "$FILE_PATH" == */test/* ]] || [[ "$FILE_PATH" == test/* ]] || \
+   [[ "$FILE_PATH" == */spec/* ]] || [[ "$FILE_PATH" == spec/* ]] || \
+   [[ "$FILE_PATH" == */__tests__/* ]]; then
   exit 0
 fi
 
 # Find current phase from active cycle files
 PHASE=""
 if [ -d ".forge/cycles/active" ]; then
-  # Look for phase marker in active cycle files
-  # Format: phase: Focus (or phase: "Focus")
-  PHASE=$(grep -h "^phase:" .forge/cycles/active/*.yaml .forge/cycles/active/*.md 2>/dev/null | head -1 | sed 's/phase:[[:space:]]*"\?\([^"]*\)"\?/\1/' | tr -d '[:space:]')
+  # Primary format (written by forge_cycle.py / forge-mcp):
+  #   <!-- FORGE_PHASE:Focus:Active -->
+  PHASE=$(grep -ho '<!-- FORGE_PHASE:[A-Za-z]*:Active -->' .forge/cycles/active/*.md 2>/dev/null | head -1 | sed 's/<!-- FORGE_PHASE:\([A-Za-z]*\):Active -->/\1/')
+
+  # Fallback: YAML-style "phase: Focus" lines
+  if [ -z "$PHASE" ]; then
+    PHASE=$(grep -h "^phase:" .forge/cycles/active/*.yaml .forge/cycles/active/*.md 2>/dev/null | head -1 | sed 's/phase:[[:space:]]*"\?\([^"]*\)"\?/\1/' | tr -d '[:space:]')
+  fi
 fi
 
 # If no active cycle or phase found, allow writes (FORGE not active)
@@ -95,14 +108,9 @@ fi
 if [ "$IS_CODE" = true ]; then
   case "$PHASE_LOWER" in
     focus|orchestrate|refine)
-      # Output block decision as JSON
-      cat << EOF
-{
-  "decision": "block",
-  "reason": "FORGE: No code during ${PHASE} phase. Write specifications to docs/ instead. Current phase: ${PHASE}"
-}
-EOF
-      exit 2  # Exit code 2 signals block
+      # Exit 2 blocks the tool call; stderr is shown to the agent as the reason
+      echo "FORGE: No code during ${PHASE} phase. Write specifications to docs/ instead. Current phase: ${PHASE}" >&2
+      exit 2
       ;;
   esac
 fi
