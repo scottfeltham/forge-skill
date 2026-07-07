@@ -9,7 +9,7 @@
 #     "hooks": {
 #       "PreToolUse": [{
 #         "matcher": "Edit|Write",
-#         "command": [".claude/hooks/forge-phase-guard.sh"]
+#         "hooks": [{"type": "command", "command": ".claude/hooks/forge-phase-guard.sh"}]
 #       }]
 #     }
 #   }

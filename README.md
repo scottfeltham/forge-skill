@@ -210,7 +210,12 @@ To automatically enforce phase constraints (block code writes during Focus/Orche
        "PreToolUse": [
          {
            "matcher": "Edit|Write",
-           "command": [".claude/hooks/forge-phase-guard.sh"]
+           "hooks": [
+             {
+               "type": "command",
+               "command": ".claude/hooks/forge-phase-guard.sh"
+             }
+           ]
          }
        ]
      }

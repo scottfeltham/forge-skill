@@ -334,7 +334,12 @@ For automated phase constraint enforcement, configure hooks in `.claude/settings
     "PreToolUse": [
       {
         "matcher": "Edit|Write",
-        "command": [".claude/hooks/forge-phase-guard.sh"]
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/forge-phase-guard.sh"
+          }
+        ]
       }
     ]
   }
