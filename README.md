@@ -5,7 +5,11 @@
 
 A Claude Code skill that implements the FORGE development framework - Intent-Driven Development (IDD) for AI-assisted software engineering.
 
-> **Also available as**: [forge-mcp-server](https://www.npmjs.com/package/forge-mcp-server) for MCP-compatible tools (Cursor, VS Code, etc.)
+> ⭐ **This is the canonical FORGE implementation**, paired with forge-kit
+> (a drop-in CLAUDE.md + phase-guard hook) for enforcement. For MCP-only
+> tools (Cursor, VS Code, etc.) there is
+> [forge-mcp-server](https://www.npmjs.com/package/forge-mcp-server),
+> now in maintenance mode - it shares this skill's `.forge/` state format.
 
 ## What is FORGE?
 
