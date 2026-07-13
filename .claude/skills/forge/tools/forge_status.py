@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["pyyaml"]
 # ///
 """Check FORGE status and validate phase requirements."""
 
 import argparse
+import json
 import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-
-import yaml
 
 ALL_PHASES = ["Focus", "Orchestrate", "Refine", "Generate", "Evaluate"]
 
@@ -229,6 +227,67 @@ def print_validation() -> None:
             print("Complete these items before advancing.")
 
 
+def phase_to_dict(phase: PhaseStatus) -> dict:
+    """Serialize a PhaseStatus for JSON output."""
+    return {
+        "state": phase.state,
+        "total_items": phase.total_items,
+        "completed_items": phase.completed_items,
+        "progress": phase.progress,
+        "items": [
+            {"completed": completed, "text": text}
+            for completed, text in phase.items
+        ],
+    }
+
+
+def status_data() -> dict:
+    """Machine-readable status for --json."""
+    if not get_forge_dir().exists():
+        return {"initialized": False, "cycles": []}
+
+    return {
+        "initialized": True,
+        "cycles": [
+            {
+                "cycle_id": cycle.cycle_id,
+                "path": str(cycle.path),
+                "active_phase": cycle.active_phase,
+                "phases": {
+                    name: phase_to_dict(phase)
+                    for name, phase in cycle.phases.items()
+                },
+            }
+            for cycle in get_active_cycles()
+        ],
+    }
+
+
+def validation_data() -> dict:
+    """Machine-readable validation for --validate --json."""
+    if not get_forge_dir().exists():
+        return {"initialized": False, "cycles": []}
+
+    cycles = []
+    for cycle in get_active_cycles():
+        can_advance, incomplete = validate_phase(cycle)
+        phase_list = list(cycle.phases.keys())
+        next_phase = None
+        if cycle.active_phase != phase_list[-1]:
+            next_phase = phase_list[phase_list.index(cycle.active_phase) + 1]
+        cycles.append(
+            {
+                "cycle_id": cycle.cycle_id,
+                "active_phase": cycle.active_phase,
+                "can_advance": can_advance,
+                "incomplete": incomplete,
+                "next_phase": next_phase,
+            }
+        )
+
+    return {"initialized": True, "cycles": cycles}
+
+
 def main() -> int:
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Check FORGE status")
@@ -244,10 +303,18 @@ def main() -> int:
         action="store_true",
         help="Validate phase requirements",
     )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit machine-readable JSON instead of human-readable text",
+    )
 
     args = parser.parse_args()
 
-    if args.validate:
+    if args.json:
+        data = validation_data() if args.validate else status_data()
+        print(json.dumps(data, indent=2))
+    elif args.validate:
         print_validation()
     else:
         print_status(detailed=args.detailed)

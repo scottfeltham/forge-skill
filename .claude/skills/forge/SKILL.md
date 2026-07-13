@@ -168,6 +168,7 @@ Use the resolved path for all commands below. Since shell state does not persist
 | Start HIL cycle | `uv run "$FORGE_TOOLS/forge_cycle.py" new "name" --mode hil` |
 | Check status | `uv run "$FORGE_TOOLS/forge_status.py"` |
 | Validate phase | `uv run "$FORGE_TOOLS/forge_status.py" --validate` |
+| Status/validation as JSON (for scripts/agents) | `uv run "$FORGE_TOOLS/forge_status.py" --json` / `--validate --json` |
 | Advance phase | `uv run "$FORGE_TOOLS/forge_phase.py" advance` |
 | Complete task | `uv run "$FORGE_TOOLS/forge_phase.py" complete-task "desc"` |
 | Add task | `uv run "$FORGE_TOOLS/forge_phase.py" add-task "desc"` |

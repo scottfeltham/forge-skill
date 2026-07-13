@@ -14,6 +14,7 @@ code path, since validation has no file side effects.
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -447,3 +448,51 @@ class TestEndToEnd:
         assert after_learnings != before_learnings
         assert "### Adopt FORGE" in after_learnings
         assert "Chose FORGE for IDD workflow" in after_learnings
+
+
+# ---------------------------------------------------------------------------
+# forge_status.py --json
+# ---------------------------------------------------------------------------
+
+
+class TestForgeStatusJson:
+    def test_json_status_with_active_cycle(self, cycle: Path, project: Path):
+        result = run(FORGE_STATUS, ["--json"], project)
+        assert result.returncode == 0
+        data = json.loads(result.stdout)
+        assert data["initialized"] is True
+        assert len(data["cycles"]) == 1
+        c = data["cycles"][0]
+        assert c["cycle_id"] == cycle.stem
+        assert c["active_phase"] == "Focus"
+        focus = c["phases"]["Focus"]
+        assert focus["state"] == "Active"
+        assert focus["total_items"] > 0
+        assert focus["completed_items"] == 0
+        assert all(
+            set(item) == {"completed", "text"} for item in focus["items"]
+        )
+
+    def test_json_status_no_cycles(self, project: Path):
+        result = run(FORGE_STATUS, ["--json"], project)
+        assert result.returncode == 0
+        data = json.loads(result.stdout)
+        assert data["initialized"] is True
+        assert data["cycles"] == []
+
+    def test_json_status_uninitialized(self, tmp_path: Path):
+        result = run(FORGE_STATUS, ["--json"], tmp_path)
+        assert result.returncode == 0
+        data = json.loads(result.stdout)
+        assert data["initialized"] is False
+        assert data["cycles"] == []
+
+    def test_json_validate_incomplete_phase(self, cycle: Path, project: Path):
+        result = run(FORGE_STATUS, ["--validate", "--json"], project)
+        assert result.returncode == 0
+        data = json.loads(result.stdout)
+        c = data["cycles"][0]
+        assert c["active_phase"] == "Focus"
+        assert c["can_advance"] is False
+        assert len(c["incomplete"]) > 0
+        assert c["next_phase"] == "Orchestrate"

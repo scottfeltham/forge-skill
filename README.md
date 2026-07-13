@@ -144,6 +144,7 @@ Verify output matches intent.
 | `forge_cycle.py complete` | Complete and archive a cycle |
 | `forge_status.py` | Check current status |
 | `forge_status.py --validate` | Validate phase requirements |
+| `forge_status.py --json` | Machine-readable status (add `--validate` for validation JSON) |
 | `forge_phase.py advance` | Move to next phase |
 | `forge_phase.py complete-task` | Mark a task complete |
 | `forge_phase.py add-task` | Add a new task |
