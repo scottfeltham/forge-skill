@@ -193,7 +193,7 @@ These per-phase confirmations are the **default**. A project can opt into
 **autonomous (low-oversight) operation** — run all phases and the TDD loop without
 pausing, gating a human in only at irreversible/production boundaries — by recording
 a policy in its `.forge/context.md`. See "Autonomous (low-oversight) operation" in
-`skill.md`. The required `cycle-review.md` deliverable is what keeps this safe: a
+`SKILL.md`. The required `cycle-review.md` deliverable is what keeps this safe: a
 cycle can run unattended but cannot close without a sign-off artifact.
 
 ### Phase Enforcement Hook
