@@ -159,7 +159,7 @@ else
 fi
 ```
 
-Use the resolved path for all commands below. Since shell state does not persist between commands, prefix each invocation: `FORGE_TOOLS=<resolved-path> && uv run "$FORGE_TOOLS/forge_init.py"`, or simply substitute the resolved path directly.
+Use the resolved path for all commands below. Since shell state does not persist between commands, substitute the resolved path directly into each invocation (e.g. `uv run ~/.claude/skills/forge/tools/forge_init.py`). Avoid the `FORGE_TOOLS=<path> && uv run ...` prefix form: it defeats `Bash(uv:*)` allowed-tools matching and triggers permission prompts.
 
 | User Request | Command |
 |-------------|---------|
@@ -355,7 +355,7 @@ The hook script:
 Install the hook:
 ```bash
 mkdir -p .claude/hooks
-cp path/to/forge-skill/.claude/hooks/forge-phase-guard.sh .claude/hooks/
+cp ~/.claude/skills/forge/hooks/forge-phase-guard.sh .claude/hooks/
 chmod +x .claude/hooks/forge-phase-guard.sh
 ```
 
