@@ -225,6 +225,9 @@ def new_cycle(name: str, priority: str = "medium", mode: str = "full") -> bool:
     timestamp = datetime.now(timezone.utc)
     date_prefix = timestamp.strftime("%Y%m%d")
     slug = slugify(name)
+    if not slug:
+        print("Error: Cycle name must contain at least one letter or digit.")
+        return False
     cycle_id = f"{date_prefix}-{slug}"
     filename = f"{cycle_id}.md"
 

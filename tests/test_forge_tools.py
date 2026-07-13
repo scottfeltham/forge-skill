@@ -146,24 +146,19 @@ class TestForgeCycle:
         assert result.returncode == 2
         assert active_cycle_files(project) == []
 
-    def test_new_empty_name_creates_degenerate_slug_file(self, project: Path):
-        # Current behavior: slugify("") == "", so the cycle is still created,
-        # just with a filename that is only the date prefix (e.g.
-        # "20260713-.md") rather than being rejected as an invalid name.
+    def test_new_empty_name_is_rejected(self, project: Path):
+        # A name that slugifies to "" must be rejected, not create a
+        # degenerate cycle file whose stem is just the date prefix.
         result = run(FORGE_CYCLE, ["new", ""], project)
-        assert result.returncode == 0
-        files = active_cycle_files(project)
-        assert len(files) == 1
-        assert files[0].stem.endswith("-")
+        assert result.returncode == 1
+        assert active_cycle_files(project) == []
 
-    def test_new_name_with_only_punctuation_creates_degenerate_slug_file(self, project: Path):
-        # Same underlying quirk as the empty-name case: a name with no
-        # alphanumeric characters also slugifies to "".
+    def test_new_name_with_only_punctuation_is_rejected(self, project: Path):
+        # Same underlying rule as the empty-name case: a name with no
+        # alphanumeric characters slugifies to "" and must be rejected.
         result = run(FORGE_CYCLE, ["new", "!!!"], project)
-        assert result.returncode == 0
-        files = active_cycle_files(project)
-        assert len(files) == 1
-        assert files[0].stem.endswith("-")
+        assert result.returncode == 1
+        assert active_cycle_files(project) == []
 
     def test_new_duplicate_name_same_day_fails(self, project: Path):
         first = run(FORGE_CYCLE, ["new", "Widget Feature"], project)
@@ -331,14 +326,11 @@ class TestForgeLearn:
         result = run(FORGE_LEARN, ["add", "pattern", "Title", "Desc"], tmp_path)
         assert result.returncode == 1
 
-    def test_list_without_learnings_file_exits_zero_despite_reporting_error(
-        self, tmp_path: Path
-    ):
-        # Quirk in forge_learn.py: list_learnings() prints an error when
-        # learnings.md is missing, but main() always returns 0 for the
-        # `list` subcommand regardless of that outcome.
+    def test_list_without_learnings_file_fails(self, tmp_path: Path):
+        # list_learnings() reports an error when learnings.md is missing;
+        # the exit code must reflect that failure.
         result = run(FORGE_LEARN, ["list"], tmp_path)
-        assert result.returncode == 0
+        assert result.returncode == 1
 
     def test_add_invalid_category_is_argparse_error(self, project: Path):
         result = run(FORGE_LEARN, ["add", "bogus-category", "Title", "Desc"], project)

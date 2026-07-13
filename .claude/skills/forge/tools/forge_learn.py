@@ -106,13 +106,13 @@ def add_learning(category: str, title: str, description: str, context: str = "")
     return True
 
 
-def list_learnings() -> None:
+def list_learnings() -> bool:
     """List all learnings by category."""
     learnings_path = get_learnings_path()
 
     if not learnings_path.exists():
         print("Error: learnings.md not found.")
-        return
+        return False
 
     content = learnings_path.read_text()
 
@@ -145,6 +145,7 @@ def list_learnings() -> None:
 
     print()
     print(f"View: {learnings_path}")
+    return True
 
 
 def run_retrospective(cycle_id: str | None = None) -> bool:
@@ -243,8 +244,7 @@ def main() -> int:
         )
         return 0 if success else 1
     elif args.command == "list":
-        list_learnings()
-        return 0
+        return 0 if list_learnings() else 1
     elif args.command == "retro":
         success = run_retrospective(args.cycle_id)
         return 0 if success else 1
