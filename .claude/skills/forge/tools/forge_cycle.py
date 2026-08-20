@@ -368,6 +368,72 @@ def complete_cycle(cycle_id: str) -> bool:
     return True
 
 
+def abandon_cycle(cycle_id: str, reason: str) -> bool:
+    """Abandon a cycle whose charter no longer describes the work.
+
+    `complete` is NOT this verb and must not stand in for it. It takes no
+    reason, requires the Evaluate phase, and records a completion — so reaching
+    for it on superseded work writes a success that never happened into the one
+    file a human reads to find out what did.
+
+    Rewriting a charter is ordinary. When its outcome ids change it is a
+    different promise, and the cycle opened for the old one can be neither
+    finished nor resumed: its cached phases cite outcomes that no longer exist.
+    Abandoning is the honest third option, and the reason is required because a
+    cycle that stops without one tells the next person nothing.
+
+    Abandoned cycles archive to `cycles/abandoned/`, not `cycles/completed/`, so
+    that "completed" never has to be read with an asterisk.
+    """
+    forge_dir = get_forge_dir()
+
+    if not forge_dir.exists():
+        print("Error: FORGE not initialized.")
+        return False
+
+    if not reason.strip():
+        print("Error: abandoning a cycle requires a reason.")
+        return False
+
+    active_dir = forge_dir / "cycles" / "active"
+    abandoned_dir = forge_dir / "cycles" / "abandoned"
+
+    cycle_path = None
+    for path in active_dir.glob("*.md"):
+        if cycle_id in path.stem:
+            cycle_path = path
+            break
+
+    if not cycle_path:
+        print(f"Error: Cycle not found: {cycle_id}")
+        print("Available cycles:")
+        for path in active_dir.glob("*.md"):
+            print(f"  - {path.stem}")
+        return False
+
+    # Stamp the truth into the file before moving it. Any phase is valid here —
+    # abandoning half-finished work is the case this exists for.
+    content = cycle_path.read_text()
+    reached = _get_active_phase(content)
+    content = content.replace("**Status**: Active",
+                              "**Status**: Abandoned", 1)
+    content += (f"\n\n---\n\n## Abandoned\n\n"
+                f"Reached **{reached}**, then abandoned.\n\n"
+                f"**Reason**: {reason.strip()}\n")
+
+    abandoned_dir.mkdir(parents=True, exist_ok=True)
+    dest_path = abandoned_dir / cycle_path.name
+    dest_path.write_text(content)
+    cycle_path.unlink()
+
+    print(f"Abandoned cycle: {cycle_path.stem}")
+    print(f"  Reached: {reached}")
+    print(f"  Reason: {reason.strip()}")
+    print(f"  Archived to: {dest_path}")
+
+    return True
+
+
 def main() -> int:
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Manage FORGE development cycles")
@@ -396,8 +462,17 @@ def main() -> int:
     complete_parser = subparsers.add_parser("complete", help="Complete a cycle")
     complete_parser.add_argument("cycle_id", help="Cycle ID to complete")
 
+    abandon_parser = subparsers.add_parser(
+        "abandon", help="Abandon a cycle whose charter no longer describes the work")
+    abandon_parser.add_argument("cycle_id", help="Cycle ID to abandon")
+    abandon_parser.add_argument(
+        "--reason", required=True,
+        help="Why. Required — a cycle that stops without one tells the next person nothing.")
+
     args = parser.parse_args()
 
+    if args.command == "abandon":
+        return 0 if abandon_cycle(args.cycle_id, args.reason) else 1
     if args.command == "new":
         success = new_cycle(args.name, args.priority, args.mode)
         return 0 if success else 1
