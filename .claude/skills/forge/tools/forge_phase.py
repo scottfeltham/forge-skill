@@ -34,7 +34,11 @@ def get_active_cycle() -> Path | None:
     if not active_dir.exists():
         return None
 
-    cycles = sorted(active_dir.glob("*.md"), reverse=True)
+    # Sort by STEM, not filename: with the ".md" suffix in the comparison a
+    # parent cycle beats every child that extends its name ("." > "-" in
+    # ASCII), while forge_gate ranks bare cycle ids the other way — reading
+    # one cycle and mutating another. Stems match the gate's ordering.
+    cycles = sorted(active_dir.glob("*.md"), key=lambda p: p.stem, reverse=True)
     return cycles[0] if cycles else None
 
 

@@ -315,6 +315,30 @@ class TestForgePhase:
         assert result.returncode == 0
         assert "- [ ] Write onboarding doc" in cycle.read_text()
 
+    def test_the_active_cycle_is_the_last_by_STEM_not_by_filename(self, project: Path):
+        """A child cycle whose name extends its parent's must outrank the parent.
+
+        Decomposition leaves the parent's cycle open while its children run, and
+        every child's name is a strict extension of the parent's so that it sorts
+        after it. Compared as FILENAMES that is false: '.' (0x2E) beats '-'
+        (0x2D), so 'widget.md' > 'widget-part-one.md' and the tool would drive
+        the parent while the caller means the child.
+        """
+        assert run(FORGE_CYCLE, ["new", "Widget"], project).returncode == 0
+        assert run(FORGE_CYCLE, ["new", "Widget Part One"], project).returncode == 0
+        files = active_cycle_files(project)
+        assert len(files) == 2
+
+        child = max(files, key=lambda p: p.stem)
+        assert child.stem.startswith(min(files, key=lambda p: p.stem).stem)
+
+        result = run(FORGE_PHASE, ["add-task", "Belongs to the child"], project)
+        assert result.returncode == 0
+        assert "- [ ] Belongs to the child" in child.read_text()
+        for other in files:
+            if other != child:
+                assert "Belongs to the child" not in other.read_text()
+
 
 # ---------------------------------------------------------------------------
 # forge_learn.py
