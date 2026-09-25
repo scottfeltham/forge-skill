@@ -45,6 +45,33 @@ An outcome that cannot be falsified is a hope, so outcomes carry their evidence 
 > `channel` is a validated enum. A value outside `sms | email | whatsapp` is refused with a 422
 > naming the parameter, **evidenced by a test that fails if the enum is widened to a bare string**.
 
+### One work order, one responsibility
+
+A charter is one unit of work, not a document that accretes. Two fields keep it that way:
+
+| Field | Values | What it does |
+|---|---|---|
+| `scope:` | `epic` \| `feature` | Declares the size. A parent's scope restricts what its children may be |
+| `parent:` | a sibling charter, or `scheme:ref` | Ties the work order to the collection it serves |
+
+`parent:` takes a sibling's id, its filename, or a scheme — `basecamp:4821` names the commercial
+record the work was sold under. Which system owns the collection is a property of the deployment,
+not of the schema.
+
+**Decomposition is checked, not trusted.** When an epic's Generate phase produces child charters,
+the factory asserts that each child's scope is one its parent permits, that each names a parent,
+that the parent it names is *this* one — and the expensive one, that **no parent outcome goes
+uncited by a child**. A split that drops an outcome ships as a set of green cycles that never built
+what was asked for.
+
+What it deliberately does not check:
+
+> Nothing here judges whether the split is **good**. That is the human's question at the approval
+> gate, and the reason the gate is there.
+
+Which is the responsibility pillar again: the machine can prove the decomposition is *complete*,
+and only the named person can say it is *right*.
+
 ### Why pillars rather than only phases
 
 Two 2026 publications describe agentic software development. Reading IDD against them shows what
@@ -55,6 +82,7 @@ the pillars buy, and where the field agrees they are missing.
 | **Intent** | `intent:` — the work order's reason to exist | `intent.md` — a direct match | Not a concept. Where intent comes from is outside the frame |
 | **Outcomes** | First-class and evidence-bearing, declared **before** the work | A field *inside* `intent.md`. Falsification arrives later, as test strategy in `plan.md` and continuous evals | Measured across populations — SWE-bench 1.96% → 78.4% — never per unit of work |
 | **Responsibility** | A named person, in the artefact | Approval **gates** — a role at a moment | Named as an urgent open problem: *"human–agent responsibility mapping"* |
+| *Decomposition* | `scope:` and `parent:`, with parent outcomes checked against child coverage | `intent.md` is one canonical filename — a branch per intent, or a file that accretes | Task decomposition is an orchestration choice (L4), not a property of the work order |
 
 **The paper's stated open problem is IDD's third pillar.** And outcomes is where IDD differs most
 from the playbook: declaring the evidence before the work starts is what stops an acceptance test
