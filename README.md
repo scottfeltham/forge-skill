@@ -29,6 +29,44 @@ FORGE (Focus-Orchestrate-Refine-Generate-Evaluate) is an Intent-Driven Developme
 - One task per AI session
 - AI is a tool, not the owner
 
+## Intent-Driven Development: the three pillars
+
+FORGE is the cycle. **IDD is what the cycle carries.** Three pillars, and a work order missing one
+is not a work order.
+
+| Pillar | What it means | In a charter |
+|---|---|---|
+| **Intent** | Why this work exists — what is wrong now, and what changes | `intent:` |
+| **Outcomes** | What must be observably true when it is done, **each naming the evidence that would falsify it** | `outcomes:` |
+| **Responsibility** | The named human accountable for those outcomes. A person, not a role | `responsible:` |
+
+An outcome that cannot be falsified is a hope, so outcomes carry their evidence with them:
+
+> `channel` is a validated enum. A value outside `sms | email | whatsapp` is refused with a 422
+> naming the parameter, **evidenced by a test that fails if the enum is widened to a bare string**.
+
+### Why pillars rather than only phases
+
+Two 2026 publications describe agentic software development. Reading IDD against them shows what
+the pillars buy, and where the field agrees they are missing.
+
+| | **IDD** | **Anthropic, AI-native SDLC playbook** | **arXiv 2604.26275, *Agentic AI in the SDLC*** |
+|---|---|---|---|
+| **Intent** | `intent:` — the work order's reason to exist | `intent.md` — a direct match | Not a concept. Where intent comes from is outside the frame |
+| **Outcomes** | First-class and evidence-bearing, declared **before** the work | A field *inside* `intent.md`. Falsification arrives later, as test strategy in `plan.md` and continuous evals | Measured across populations — SWE-bench 1.96% → 78.4% — never per unit of work |
+| **Responsibility** | A named person, in the artefact | Approval **gates** — a role at a moment | Named as an urgent open problem: *"human–agent responsibility mapping"* |
+
+**The paper's stated open problem is IDD's third pillar.** And outcomes is where IDD differs most
+from the playbook: declaring the evidence before the work starts is what stops an acceptance test
+drifting toward whatever was convenient to build.
+
+**What the schema cannot do.** A `responsible:` field proves the name was filled in, not that the
+person read the result. The pillar is enforced by the charter; it is honoured by a review small
+enough to read — which is a practice, and lives outside this repo.
+
+**Sources.** [The AI-native SDLC playbook](https://claude.com/blog/the-ai-native-sdlc-playbook) ·
+[arXiv 2604.26275](https://arxiv.org/abs/2604.26275)
+
 ## Installation
 
 ### Prerequisites
